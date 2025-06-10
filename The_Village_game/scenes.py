@@ -1,18 +1,21 @@
-#file will contain all scene dicts for the game
+# file will contain all scene dicts for the game
 
-#dynamic variable for player_state_dict =
+# dynamic variable for player_state_dict =
 # farmer_location (inside, outside, barn)
 # church_state (empty, priest, basement)
 # fog_density (heavy, light, none)
 
 # need a last location variable to know where your coming from in swamp or keep track of where player been
-#tags for analysis later?
-#NEW key in dict locked = hidden until condition met
+# tags for analysis later?
+# NEW key in dict locked = hidden until condition met
+#none of the crossroads have follow-up_text or next_checkpoint, //// none finished
+#need dialogue for when you cant 'progress' in scene
+# dict key and values will change, below is foundation
 
-#dict key and values will change, below is foundation
+#conditions to be met = has_decoder, has_weapon, has_mask
 
-#dict template
-"checkpoint": {
+# dict template
+'''"checkpoint": {
         "dialogue": "text",
         "choices": {
             "option_one": {
@@ -34,28 +37,28 @@
                 "next_checkpoint": "text"
             }
         }
-    },
+    },'''
 
-#purely for secret endings
+# purely for secret endings
 center_scene_dict = {
     "intro": {
-            "dialogue": "You decide to go forward and come up on a small circle of houses, with an organic statue in the center. You cant see people, could it be abandoned?",
-            "choices": {
-                "option_one": {
-                    "Text": "Walk to the center",
-                    "id": 1,
-                    "follow_up_text": "You decide to continue on...",
-                    "next_checkpoint": "village_center"
-                },
-                "option_two": {
-                    "Text": "Leave",
-                    "id": 2,
-                    "follow_up_text": "You decide to head back to the crossroads",
-                    "next_checkpoint": "center_crossroads"
-                }
+        "dialogue": "You decide to go forward and come up on a small circle of houses, with an organic statue in the center. You cant see people, could it be abandoned?",
+        "choices": {
+            "option_one": {
+                "Text": "Walk to the center",
+                "id": 1,
+                "follow_up_text": "You decide to continue on...",
+                "next_checkpoint": "village_center"
+            },
+            "option_two": {
+                "Text": "Leave",
+                "id": 2,
+                "follow_up_text": "You decide to head back to the crossroads",
+                "next_checkpoint": "center_crossroads"
             }
+        }
     },
-    "center_crossroads": {  # crossroads to leave the scene *not finished*
+    "center_crossroads": {  # crossroads to leave the scene
         "dialogue": "Where do you want to go?",
         "choices": {
             "option_one": {
@@ -110,6 +113,7 @@ center_scene_dict = {
                                   " 'Quench the hands, heal the spring—One binds flesh to fury, the other frees the soul'"
                                   "The second engraving running along the base of the fountain reads, 'Blood of the forest, tears of the sky, veins of the earth'",
                 "locked_text": "If only you could read these...",
+                'condition': 'has_decoder'
             },
             "option_three": {
                 "Text": "leave",
@@ -125,7 +129,7 @@ center_scene_dict = {
             }
         }
     },
-    "statue_vials": {
+    "statue_vials": {#leads to endings
         "dialogue": "You approach the statue holding the vials...",
         "choices": {
             "option_one": {
@@ -142,24 +146,25 @@ center_scene_dict = {
             }
         }
     },
+    #endings
     "cleansed_ending": {
-    "dialogue": "The water drains from the fountain slowly, then cracks open, revealing a spiraling staircase. You descend "
-                "and are placed in a sewer, a sign reads city with an arrow. You follow it. Youve escaped the village",
-    "ending_key": "cleansed_secret"
+        "dialogue": "The water drains from the fountain slowly, then cracks open, revealing a spiraling staircase. You descend "
+                    "and are placed in a sewer, a sign reads city with an arrow. You follow it. Youve escaped the village",
+        "ending_key": "cleansed_secret"
     },
     "vessel_ending": {
-    "dialogue": "You pour the vials into the statues hands, each one instantly soaking in. Suddenly the statue combusts, "
-                "a faint sickly odor surrounds you, you cluth your throat as it burns and suffocates your lungs. "
-                "Your bones break and reform as your muscles expand. Youve become their beast. You are the village.",
-    "ending_key": "the_vessel_secret"
+        "dialogue": "You pour the vials into the statues hands, each one instantly soaking in. Suddenly the statue combusts, "
+                    "a faint sickly odor surrounds you, you cluth your throat as it burns and suffocates your lungs. "
+                    "Your bones break and reform as your muscles expand. Youve become their beast. You are the village.",
+        "ending_key": "the_vessel_secret"
     }
 
 }
 
-#fog density is conditional
+# fog density is conditional
 swamp_scene_dict = {
     "intro": {
-        "dialogue": { #or later on, change follow-up text to feel dynamic
+        "dialogue": {  # or later on, change follow-up text to feel dynamic
             "from_church": "You decide to take a left and come up on a open swampy area",
             "from_farm": "You decide to take a right and come up on a open swampy area"
         },
@@ -178,6 +183,174 @@ swamp_scene_dict = {
             }
         }
     },
+    # conditional template
+    "start_position": {
+        "heavy_fog": {
+            "dialogue": "As you get closer to the swamp, the fog begins to get heavy, its hard to see anything",
+            "choices": {
+                "option_one": {
+                    "Text": "Walk aimlessly",
+                    "id": 1,
+                    "follow_up_text": "Despite the alarming silence around this church you decide to walk in the door",
+                    "next_checkpoint": "inside_swamp"
+                },
+                "option_two": {
+                    "Text": "Turn and Leave",
+                    "id": 2,
+                    "follow_up_text": "Not worth getting lost in here...",
+                    "next_checkpoint": "swamp_crossroads"
+                }
+            }
+        },
+        "light_fog": {
+            "dialogue": "As you walk more into the swamp, the fog gets a little heavier, you can faintly see the outline of a structure in the distance",
+            "choices": {
+                "option_one": {
+                    "Text": "Continue Walking",
+                    "id": 1,
+                    "follow_up_text": "Its justa little fog, its not like your blind",
+                    "next_checkpoint": "inside_swamp"
+                },
+                "option_two": {
+                    "Text": "Turn and Leave",
+                    "id": 2,
+                    "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
+                    "next_checkpoint": "swamp_crossroads"
+                }
+            }
+        },
+        "no_fog": {
+            "dialogue": "As you get closer to the swamp you can see a large stone structure in the center. It looks to have a pedestal in the middle.",
+            "choices": {
+                "option_one": {
+                    "Text": "keep walking",
+                    "id": 1,
+                    "follow_up_text": "you walk towards the stone structure...",
+                    "next_checkpoint": "inside_swamp"
+                },
+                "option_two": {
+                    "Text": "Turn and Leave",
+                    "id": 2,
+                    "follow_up_text": "Something about the energy here isn't right, you walk away...",
+                    "next_checkpoint": "swamp_crossroads"
+                }
+            }
+        }
+    },
+    "inside_swamp": {
+        "heavy_fog": {
+            "dialogue": "You walk forward with your hands stretched out, you hear rustling in the distance, you can only see 1 foot in front of you. "
+                        "Suddenly you make contact with a stone structure, you can see some kind of cube on its pedestal.",
+            "choices": {
+                "option_one": {
+                    "Text": "approach the cube",
+                    "id": 1,
+                    "follow_up_text": "The cube is small and metallic, it flashes with a bright light...",
+                    "next_checkpoint": "intuition_test"
+                },
+                "option_two": {
+                    "Text": "Turn and Leave",
+                    "id": 2,
+                    "follow_up_text": "This is too weird, time to go...",
+                    "next_checkpoint": "swamp_crossroads"
+                }
+            }
+        },
+        "light_fog": {
+            "dialogue": "You walk towards the structure. As you get closer you notice a pedestal in the center, it looks like a metal cube is on it...",
+            "choices": {
+                "option_one": {
+                    "Text": "approach the metal cube",
+                    "id": 1,
+                    "follow_up_text": "Something special enough to be on a pedestal is worth taking a look at",
+                    "next_checkpoint": "intuition_test"
+                },
+                "option_two": {
+                    "Text": "Look around",
+                    "id": 2,
+                    "follow_up_text": "Maybe you should check the surrounding area before...",
+                    "next_checkpoint": "swamp_key_items"
+                },
+                "option_three": {
+                    "Text": "Turn and Leave",
+                    "id": 3,
+                    "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
+                    "next_checkpoint": "swamp_crossroads"
+                }
+            }
+        },
+        "no_fog": {
+            "dialogue": "You walk closer to the stone structure. You can see footprints and dragging marks within the mud and "
+                        "earth, someone or something put up a fight here. There are strange markings on the structure, symbols. "
+                        "In the center of the stone structure is a pedestal with a metal like cube in the center.",
+            "choices": {
+                "option_one": {
+                    "Text": "Approach the cube",
+                    "id": 1,
+                    "follow_up_text": "This could be interesting....",
+                    "next_checkpoint": "intuition_test"
+                },
+                "option_two": {
+                    "Text": "look around",
+                    "id": 2,
+                    "follow_up_text": "There could be more here to discover...",
+                    "next_checkpoint": "swamp_key_items"
+                },
+                "option_three": {
+                    "Text": "Turn and Leave",
+                    "id": 3,
+                    "follow_up_text": "Something about the energy here isn't right, you walk away...",
+                    "next_checkpoint": "swamp_crossroads"
+                }
+            }
+        }
+    },
+    "swamp_key_items": {
+        "light_fog": {
+            "dialogue": "You look around the surrounding area and spot a hammer",
+            "choices": {
+                "option_one": {
+                    "Text": "take the hammer",
+                    "id": 1,
+                    "follow_up_text": "Could be useful...",
+                    "next_checkpoint": "approach_cube"
+                },
+                "option_two": {
+                    "Text": "Leave the hammer",
+                    "id": 2,
+                    "follow_up_text": "its just a hammer",
+                    "next_checkpoint": "approach_cube"
+                }
+            }
+        },
+        "no_fog": {
+            "dialogue": "You look around the surrounding area. You find a hammer and a rusty key. You also find strange "
+                        "letters on the side of the structure, if only you could decipher them. ",
+            "choices": {
+                "option_one": {
+                    "Text": "take the hammer and key",
+                    "id": 1,
+                    "follow_up_text": "This could be interesting....",
+                    "next_checkpoint": "approach_cube"
+                },
+                "option_two": {
+                    "Text": "Take the items and use decoder",
+                    "id": 2,
+                    "condition": "has_decoder",
+                    "locked_text": "How could you decode these...",
+                    "follow_up_text": "you pocket the hammer and key, then use your decoder to read the strange words. (placeholder)",
+                    "next_checkpoint": "approach_cube"
+                },
+                "option_three": {
+                    "Text": "Leave the hammer and key",
+                    "id": 3,
+                    "follow_up_text": "Its a hammer and a rusty key, what could you possibly need these for...",
+                    "next_checkpoint": "approach_cube"
+                }
+            }
+        }
+    },
+    #checkpoint template
     "swamp_crossroads": {  # crossroads to leave the scene *not finished*
         "dialogue": "Where do you want to go?",
         "choices": {
@@ -192,178 +365,6 @@ swamp_scene_dict = {
             "option_three": {
                 "Text": "Go forward [Village Center]",
                 "id": 3
-            }
-        }
-    },
-    "start_position": {
-        "dialogue": {
-            "heavy_fog": {
-                "dialogue": "As you get closer to the swamp, the fog begins to get heavy, its hard to see anything",
-                "choices": {
-                    "option_one": {
-                        "Text": "Walk aimlessly",
-                        "id": 1,
-                        "follow_up_text": "Despite the alarming silence around this church you decide to walk in the door",
-                        "next_checkpoint": "inside_swamp"
-                    },
-                    "option_two": {
-                        "Text": "Turn and Leave",
-                        "id": 2,
-                        "follow_up_text": "Not worth getting lost in here...",
-                        "next_checkpoint": "swamp_crossroads"
-                    }
-                }
-            },
-            "light_fog": {
-                "dialogue": "As you walk more into the swamp, the fog gets a little heavier, you can faintly see the outline of a structure in the distance",
-                "choices": {
-                    "option_one": {
-                        "Text": "Continue Walking",
-                        "id": 1,
-                        "follow_up_text": "Its justa little fog, its not like your blind",
-                        "next_checkpoint": "inside_swamp"
-                    },
-                    "option_two": {
-                        "Text": "Turn and Leave",
-                        "id": 2,
-                        "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
-                        "next_checkpoint": "swamp_crossroads"
-                    }
-                }
-            },
-            "no_fog": {
-                "dialogue": "As you get closer to the swamp you can see a large stone structure in the center. It looks to have a pedestal in the middle.",
-                "choices": {
-                    "option_one": {
-                        "Text": "keep walking",
-                        "id": 1,
-                        "follow_up_text": "you walk towards the stone structure...",
-                        "next_checkpoint": "inside_swamp"
-                    },
-                    "option_two": {
-                        "Text": "Turn and Leave",
-                        "id": 2,
-                        "follow_up_text": "Something about the energy here isn't right, you walk away...",
-                        "next_checkpoint": "swamp_crossroads"
-                    }
-                }
-            }
-        }
-    },
-    "inside_swamp": {
-        "dialogue": {
-            "heavy_fog": {
-                "dialogue": "You walk forward with your hands stretched out, you hear rustling in the distance, you can only see 1 foot in front of you. "
-                            "Suddenly you make contact with a stone structure, you can see some kind of cube on its pedestal.",
-                "choices": {
-                    "option_one": {
-                        "Text": "approach the cube",
-                        "id": 1,
-                        "follow_up_text": "The cube is small and metallic, it flashes with a bright light...",
-                        "next_checkpoint": "intuition_test"
-                    },
-                    "option_two": {
-                        "Text": "Turn and Leave",
-                        "id": 2,
-                        "follow_up_text": "This is too weird, time to go...",
-                        "next_checkpoint": "swamp_crossroads"
-                    }
-                }
-            },
-            "light_fog": {
-                "dialogue": "You walk towards the structure. As you get closer you notice a pedestal in the center, it looks like a metal cube is on it...",
-                "choices": {
-                    "option_one": {
-                        "Text": "approach the metal cube",
-                        "id": 1,
-                        "follow_up_text": "Something special enough to be on a pedestal is worth taking a look at",
-                        "next_checkpoint": "intuition_test"
-                    },
-                    "option_two": {
-                        "Text": "Look around",
-                        "id": 2,
-                        "follow_up_text": "Maybe you should check the surrounding area before...",
-                        "next_checkpoint": "swamp_key_items"
-                    },
-                    "option_three": {
-                        "Text": "Turn and Leave",
-                        "id": 3,
-                        "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
-                        "next_checkpoint": "swamp_crossroads"
-                    }
-                }
-            },
-            "no_fog": {
-                "dialogue": "You walk closer to the stone structure. You can see footprints and dragging marks within the mud and "
-                            "earth, someone or something put up a fight here. There are strange markings on the structure, symbols. "
-                            "In the center of the stone structure is a pedestal with a metal like cube in the center.",
-                "choices": {
-                    "option_one": {
-                        "Text": "Approach the cube",
-                        "id": 1,
-                        "follow_up_text": "This could be interesting....",
-                        "next_checkpoint": "intuition_test"
-                    },
-                    "option_two": {
-                        "Text": "look around",
-                        "id": 2,
-                        "follow_up_text": "There could be more here to discover...",
-                        "next_checkpoint": "swamp_key_items"
-                    },
-                    "option_three": {
-                        "Text": "Turn and Leave",
-                        "id": 3,
-                        "follow_up_text": "Something about the energy here isn't right, you walk away...",
-                        "next_checkpoint": "swamp_crossroads"
-                    }
-                }
-            }
-        }
-    },
-    "swamp_key_items": {
-        "dialogue": {
-            "light_fog": {
-                "dialogue": "You look around the surrounding area and spot a hammer",
-                "choices": {
-                    "option_one": {
-                        "Text": "take the hammer",
-                        "id": 1,
-                        "follow_up_text": "Could be useful...",
-                        "next_checkpoint": "approach_cube"
-                    },
-                    "option_two": {
-                        "Text": "Leave the hammer",
-                        "id": 2,
-                        "follow_up_text": "its just a hammer",
-                        "next_checkpoint": "approach_cube"
-                    }
-                }
-            },
-            "no_fog": {
-                "dialogue": "You look around the surrounding area. You find a hammer and a rusty key. You also find strange "
-                            "letters on the side of the structure, if only you could decipher them. ",
-                "choices": {
-                    "option_one": {
-                        "Text": "take the hammer and key",
-                        "id": 1,
-                        "follow_up_text": "This could be interesting....",
-                        "next_checkpoint": "approach_cube"
-                    },
-                    "option_two": {
-                        "Text": "Take the items and use decoder",
-                        "id": 2,
-                        "condition": "has_decoder",
-                        "locked_text": "How could you decode these...",
-                        "follow_up_text": "you pocket the hammer and key, then use your decoder to read the strange words. (placeholder)",
-                        "next_checkpoint": "approach_cube"
-                    },
-                    "option_three": {
-                        "Text": "Leave the hammer and key",
-                        "id": 3,
-                        "follow_up_text": "Its a hammer and a rusty key, what could you possibly need these for...",
-                        "next_checkpoint": "approach_cube"
-                    }
-                }
             }
         }
     },
@@ -384,6 +385,7 @@ swamp_scene_dict = {
             }
         }
     },
+    #test
     "intuition_test": {
         "question_1": {
             "dialogue": "The cube hums...",
@@ -407,7 +409,7 @@ swamp_scene_dict = {
         },
         "question_2": {
             "dialogue": "A low frequency starts vibrating in your skull. You feel words that aren’t yours:"
-                            "'What are you made of?'",
+                        "'What are you made of?'",
             "choices": {
                 "option_one": {
                     "Text": "speak back",
@@ -426,7 +428,7 @@ swamp_scene_dict = {
                 }
             }
         },
-        "question_3": {# *not finished*
+        "question_3": {  # *not finished*
             "dialogue": "A beam shines down on you...",
             "choices": {
                 "option_one": {
@@ -447,7 +449,7 @@ swamp_scene_dict = {
             }
         }
     },
-    "make_choice": { #choose for ending after test if you got the curious result
+    "make_choice": {  # choose for ending after test if you got the curious result
         "dialogue": "The Aliens are captivated by your curiosity they wish for you to stay so they may study you",
         "choices": {
             "option_one": {
@@ -462,27 +464,26 @@ swamp_scene_dict = {
             }
         }
     },
-    #endings
+    # endings
     "rejected_ending": {
-    "dialogue": "Your pathetic, the aliens probe you, dissect you, then discard you.",
-    "ending_key": "rejected_specimen"
+        "dialogue": "Your pathetic, the aliens probe you, dissect you, then discard you.",
+        "ending_key": "rejected_specimen"
     },
     "probed_ending": {
-    "dialogue": "Your average, the aliens probe you, wipe your memory and send you back to the forest",
-    "ending_key": "probed_and_confused"
+        "dialogue": "Your average, the aliens probe you, wipe your memory and send you back to the forest",
+        "ending_key": "probed_and_confused"
     },
     "belong_ending": {
-    "dialogue": "The Aliens cheer as they usher you into the bridge. Their captain standing tall, with an outreached hand...",
-    "ending_key": "you_belong_with_us"
+        "dialogue": "The Aliens cheer as they usher you into the bridge. Their captain standing tall, with an outreached hand...",
+        "ending_key": "you_belong_with_us"
     },
     "intuition_ending": {
-    "dialogue": "The Aliens are sad to see you go but wish you all the best",
-    "ending_key": "intuition_test_passed"
+        "dialogue": "The Aliens are sad to see you go but wish you all the best",
+        "ending_key": "intuition_test_passed"
     },
-
 }
 
-#state of the church is conditional
+# state of the church is conditional
 church_scene_dict = {
     "intro": {  # entered the scene
         "dialogue": "You decide to take a left and see a church among the trees, do you approach or turn around?",
@@ -501,7 +502,130 @@ church_scene_dict = {
             }
         }
     },
-    "church_crossroads": {#crossroads to leave the scene *not finished*
+    # conditional template
+    "start_position": {
+        "church_is_empty": {
+            "dialogue": "As you get closer to the church, you cant see any lights or hear any voices, it might be abandoned...",
+            "choices": {
+                "option_one": {
+                    "Text": "Go in",
+                    "id": 1,
+                    "follow_up_text": "Despite the alarming silence around this church you decide to walk in the door",
+                    "next_checkpoint": "inside_church"
+                },
+                "option_two": {
+                    "Text": "Turn and Leave",
+                    "id": 2,
+                    "follow_up_text": "This church looks too creepy, best to walk away....",
+                    "next_checkpoint": "church_crossroads"
+                }
+            }
+        },
+        "priest_inside": {
+            "dialogue": "As you get closer to the church, you can faintly hear someone singing, theres a light emitting from one of the windows.",
+            "choices": {
+                "option_one": {
+                    "Text": "Go in",
+                    "id": 1,
+                    "follow_up_text": "Its a church...how bad could it be",
+                    "next_checkpoint": "inside_church"
+                },
+                "option_two": {
+                    "Text": "Turn and Leave",
+                    "id": 2,
+                    "follow_up_text": "Perhaps small lights and faint singing does not equate to safety, you walk away...",
+                    "next_checkpoint": "church_crossroads"
+                }
+            }
+        },
+        "basement_open": {
+            "dialogue": "As you get closer to the church, you cant hear or see anything that would imply someone is there, but you have a feeling your not alone...",
+            "choices": {
+                "option_one": {
+                    "Text": "Go in",
+                    "id": 1,
+                    "follow_up_text": "Im sure its just nerves, you head for the door...",
+                    "next_checkpoint": "inside_church"
+                },
+                "option_two": {
+                    "Text": "Turn and Leave",
+                    "id": 2,
+                    "follow_up_text": "Something about the energy here isn't right, you walk away...",
+                    "next_checkpoint": "church_crossroads"
+                }
+            }
+        }
+    },
+    "inside_church": {
+        "church_is_empty": {
+            "dialogue": "The church is surprisingly clean for looking so worn down on the outside. Doesnt look like anyone is here.",
+            "choices": {
+                "option_one": {
+                    "Text": "Explore",
+                    "id": 1,
+                    "follow_up_text": "No harm in exploring a church, might find something useful",
+                    "next_checkpoint": "church_key_items"
+                },
+                "option_two": {
+                    "Text": "Leave",
+                    "id": 2,
+                    "follow_up_text": "Its a creepy empty church in the forest, you should not be in here.",
+                    "next_checkpoint": "church_crossroads"
+                }
+            }
+        },
+        "priest_inside": {
+            "dialogue": "The door is slightly ajar. When you walk in there is a priest facing the murals on the "
+                        "back wall, hes lighting candles and singing a hymnn softly. doesnt seem like he heard you come in.",
+            "choices": {
+                "option_one": {
+                    "Text": "Approach the priest",
+                    "id": 1,
+                    "follow_up_text": "You slowly approach the priest, just as your about to tap his shoulder he turns...",
+                    "next_checkpoint": "faith_test"
+                },
+                "option_two": {
+                    "Text": "Sit in the back pew",
+                    "id": 2,
+                    "follow_up_text": "he could be praying, maybe wait and let him finish...Once the priest finishes his song he turns and sees you sitting, he approaches...",
+                    "next_checkpoint": "faith_test"
+                },
+                "option_three": {
+                    "Text": "kill the priest",
+                    "id": 3,
+                    "condition": "has_weapon",
+                    "locked_text": "You reach for a weapon you don’t have.",
+                    "follow_up_text": "You quietly sneak up on the priest, and kill him",
+                    "next_checkpoint": "priest_death_ending"
+                },
+            }
+        },
+        "basement_open": {
+            "dialogue": "You enter the church cautiously, you were right, its abandoned, except for...that small light...emitting from the cellar door...",
+            "choices": {
+                "option_one": {
+                    "Text": "Yell hello down the stairs",
+                    "id": 1,
+                    "follow_up_text": "No harm in calling out...right?. A couple of voices can be heard before a man ascends up the stairs, he looks like a priest.",
+                    "next_checkpoint": "faith_test"
+                },
+                "option_two": {
+                    "Text": "sit in the back pew and wait",
+                    "id": 2,
+                    "follow_up_text": "Someone is bound to come upstairs eventually...10 minutes later you hear someone ascend up the stairs, he looks like a priest. He walks towards you. ",
+                    "next_checkpoint": "faith_test"
+                },
+                "option_three": {
+                    "Text": "go downstairs",
+                    "id": 2,
+                    "follow_up_text": "its just a light....",
+                    "next_checkpoint": "church_basement"
+                }
+            }
+        }
+    },
+    # checkpoint template
+    "church_crossroads": {  # crossroads to leave the scene *not finished*
         "dialogue": "Where do you want to go?",
         "choices": {
             "option_one": {
@@ -515,131 +639,6 @@ church_scene_dict = {
             "option_three": {
                 "Text": "Go forward [Village Center]",
                 "id": 3
-            }
-        }
-    },
-    "start_position": {
-        "dialogue": {
-            "church_is_empty": {
-                "dialogue": "As you get closer to the church, you cant see any lights or hear any voices, it might be abandoned...",
-                "choices": {
-                    "option_one": {
-                        "Text": "Go in",
-                        "id": 1,
-                        "follow_up_text": "Despite the alarming silence around this church you decide to walk in the door",
-                        "next_checkpoint": "inside_church"
-                    },
-                    "option_two": {
-                        "Text": "Turn and Leave",
-                        "id": 2,
-                        "follow_up_text": "This church looks too creepy, best to walk away....",
-                        "next_checkpoint": "church_crossroads"
-                    }
-                }
-            },
-            "priest_inside": {
-                "dialogue": "As you get closer to the church, you can faintly hear someone singing, theres a light emitting from one of the windows.",
-                "choices": {
-                    "option_one": {
-                        "Text": "Go in",
-                        "id": 1,
-                        "follow_up_text": "Its a church...how bad could it be",
-                        "next_checkpoint": "inside_church"
-                    },
-                    "option_two": {
-                        "Text": "Turn and Leave",
-                        "id": 2,
-                        "follow_up_text": "Perhaps small lights and faint singing does not equate to safety, you walk away...",
-                        "next_checkpoint": "church_crossroads"
-                    }
-                }
-            },
-            "basement_open": {
-                "dialogue": "As you get closer to the church, you cant hear or see anything that would imply someone is there, but you have a feeling your not alone...",
-                "choices": {
-                    "option_one": {
-                        "Text": "Go in",
-                        "id": 1,
-                        "follow_up_text": "Im sure its just nerves, you head for the door...",
-                        "next_checkpoint": "inside_church"
-                    },
-                    "option_two": {
-                        "Text": "Turn and Leave",
-                        "id": 2,
-                        "follow_up_text": "Something about the energy here isn't right, you walk away...",
-                        "next_checkpoint": "church_crossroads"
-                    }
-                }
-            }
-        }
-    },
-    "inside_church": {
-        "dialogue": {
-            "church_is_empty": {
-                "dialogue": "The church is surprisingly clean for looking so worn down on the outside. Doesnt look like anyone is here.",
-                "choices": {
-                    "option_one": {
-                        "Text": "Explore",
-                        "id": 1,
-                        "follow_up_text": "No harm in exploring a church, might find something useful",
-                        "next_checkpoint": "church_key_items"
-                    },
-                    "option_two": {
-                        "Text": "Leave",
-                        "id": 2,
-                        "follow_up_text": "Its a creepy empty church in the forest, you should not be in here.",
-                        "next_checkpoint": "church_crossroads"
-                    }
-                }
-            },
-            "priest_inside": {
-                "dialogue": "The door is slightly ajar. When you walk in there is a priest facing the murals on the "
-                            "back wall, hes lighting candles and singing a hymnn softly. doesnt seem like he heard you come in.",
-                "choices": {
-                    "option_one": {
-                        "Text": "Approach the priest",
-                        "id": 1,
-                        "follow_up_text": "You slowly approach the priest, just as your about to tap his shoulder he turns...",
-                        "next_checkpoint": "faith_test"
-                    },
-                    "option_two": {
-                        "Text": "Sit in the back pew",
-                        "id": 2,
-                        "follow_up_text": "he could be praying, maybe wait and let him finish...Once the priest finishes his song he turns and sees you sitting, he approaches...",
-                        "next_checkpoint": "faith_test"
-                    },
-                    "option_three": {
-                        "Text": "kill the priest",
-                        "id": 3,
-                        "condition": "has_weapon",
-                        "locked_text": "You reach for a weapon you don’t have.",
-                        "follow_up_text": "You quietly sneak up on the priest, and kill him",
-                        "next_checkpoint": "priest_death_ending"
-                    },
-                }
-            },
-            "basement_open": {
-                "dialogue": "You enter the church cautiously, you were right, its abandoned, except for...that small light...emitting from the cellar door...",
-                "choices": {
-                    "option_one": {
-                        "Text": "Yell hello down the stairs",
-                        "id": 1,
-                        "follow_up_text": "No harm in calling out...right?. A couple of voices can be heard before a man ascends up the stairs, he looks like a priest.",
-                        "next_checkpoint": "faith_test"
-                    },
-                    "option_two": {
-                        "Text": "sit in the back pew and wait",
-                        "id": 2,
-                        "follow_up_text": "Someone is bound to come upstairs eventually...10 minutes later you hear someone ascend up the stairs, he looks like a priest. He walks towards you. ",
-                        "next_checkpoint": "faith_test"
-                    },
-                    "option_three": {
-                        "Text": "go downstairs",
-                        "id": 2,
-                        "follow_up_text": "its just a light....",
-                        "next_checkpoint": "church_basement"
-                    }
-                }
             }
         }
     },
@@ -665,7 +664,7 @@ church_scene_dict = {
                 "follow_up_text": "What did you just stumble upon?",
                 "next_checkpoint": "basement_ritual"
             },
-            "option_four": { #lore item
+            "option_four": {  # lore item
                 "Text": "wear the farmhouse mask",
                 "id": 3,
                 "condition": "has_mask",
@@ -718,6 +717,7 @@ church_scene_dict = {
             }
         }
     },
+    #test
     "faith_test": {
         "question_1": {
             "dialogue": "The priest greets you with a warm smile. 'What is your name child?'",
@@ -834,7 +834,7 @@ church_scene_dict = {
                 }
             }
         },
-        "question_6": {# *not finished*
+        "question_6": {  # *not finished*
             "dialogue": "The priest stands up, gazing out the window, 'Will you stay for the ritual tomorrow?'",
             "choices": {
                 "option_one": {
@@ -858,19 +858,19 @@ church_scene_dict = {
             }
         },
     },
-    #endings
+    # endings
     "believer_ending": {
-    "dialogue": "the priest sees light within your eyes, youve been asked to join the village",
-    "ending_key": "true_believer"
+        "dialogue": "the priest sees light within your eyes, youve been asked to join the village",
+        "ending_key": "true_believer"
     },
     "faith_ending": {
-    "dialogue": "The priest respects your autonomy as you do his. Your free to explore the church respectfully. Priest tells you to seek answers in the center.",
-    "ending_key": "faith_test_passed",
-    "next_checkpoint": "church_key_items"#or items added to inventory
+        "dialogue": "The priest respects your autonomy as you do his. Your free to explore the church respectfully. Priest tells you to seek answers in the center.",
+        "ending_key": "faith_test_passed",
+        "next_checkpoint": "church_key_items"  # or items added to inventory
     },
     "heretics_ending": {
-    "dialogue": "The priest is insulted by your disrespect. He opens the door to the basement ringing a bell. Your put in a cage to be sacrificed in the ritual.",
-    "ending_key": "heretics_fate"
+        "dialogue": "The priest is insulted by your disrespect. He opens the door to the basement ringing a bell. Your put in a cage to be sacrificed in the ritual.",
+        "ending_key": "heretics_fate"
     },
     "priest_death_ending": {
         "dialogue": "The priest falls to your feet, a pool of blood forming. A follower enters the church and yells for help. "
@@ -878,15 +878,15 @@ church_scene_dict = {
         "ending_key": "thou_shalt_not"
     },
     "altar_ending": {
-    "dialogue": "All 3 cloaked figures chase after you. they capture you and put you in a cage in the basement. One figure "
+        "dialogue": "All 3 cloaked figures chase after you. they capture you and put you in a cage in the basement. One figure "
                     "takes off their mask and robe before approaching you, he looks like a priest. 'Blessed are the chosen. Youve been chosen for the ritual tomorrow",
-    "ending_key": "altar_bound"
+        "ending_key": "altar_bound"
     }
 }
 
-#farmer location is conditional
+# farmer location is conditional
 farm_scene_dict = {
-    "intro": {#entered the scene
+    "intro": {  # entered the scene
         "dialogue": "You decide to take a right and see a farm at the bottom of a hill in the distance, do you approach or turn around?",
         "choices": {
             "option_one": {
@@ -903,61 +903,9 @@ farm_scene_dict = {
             }
         }
     },
-    #crossroads
-    "farm_crossroads": {#crossroads to leave the scene *not finished*
-        "dialogue": "Where do you want to go?",
-        "choices": {
-            "option_one": {
-                "Text": "Go right [Swamp]",
-                "id": 1
-            },
-            "option_two": {
-                "Text": "Go left [Forest]",
-                "id": 2
-            },
-            "option_three": {
-                "Text": "Go forward [Village Center]",
-                "id": 3
-            }
-        }
-    },
-    "house_crossroads": {#crossroads when leaving the house
-        "dialogue": "Where do you want to go?",
-        "choices": {
-            "option_one": {
-                "Text": "Go to the crossroads",
-                "id": 1,
-                "follow_up_text": "You turn around and walk back up the hill to the crossroads...",
-                "next_checkpoint": "farm_crossroads"
-            },
-            "option_two": {
-                "Text": "Go to barn",
-                "id": 2,
-                "follow_up_text": "You turn and walk towards the barn...",
-                "next_checkpoint": "choose_barn"
-            }
-        }
-    },
-    "barn_crossroads": {#crossroads when leaving the barn
-        "dialogue": "Where do you want to go?",
-        "choices": {
-            "option_one": {
-                "Text": "Go to the crossroads",
-                "id": 1,
-                "follow_up_text": "You turn around and walk back up the hill to the crossroads...",
-                "next_checkpoint": "farm_crossroads"
-            },
-            "option_two": {
-                "Text": "Go to the farmhouse",
-                "id": 2,
-                "follow_up_text": "You turn and walk towards the house...",
-                "next_checkpoint": "choose_farmhouse"
-            }
-        }
-    },
-
-    "start_position": {#go to farm or barn
-        "farmer_in_house": {#random event condition
+    # conditional template
+    "start_position": {  # go to farm or barn
+        "farmer_in_house": {
             "dialogue": "You walk forward getting closer to the farm, on one seems to be around.",
             "choices": None
         },
@@ -971,10 +919,10 @@ farm_scene_dict = {
         },
         "choices": {
             "option_one": {
-            "Text": "Walk to the Farmhouse",
-            "id": 1,
-            "follow_up_text": "You start making your way to the farmhouse...",
-            "next_checkpoint": "choose_farmhouse"
+                "Text": "Walk to the Farmhouse",
+                "id": 1,
+                "follow_up_text": "You start making your way to the farmhouse...",
+                "next_checkpoint": "choose_farmhouse"
             },
             "option_two": {
                 "Text": "Walk to the Barn",
@@ -984,7 +932,7 @@ farm_scene_dict = {
             }
         }
     },
-    "choose_farmhouse": {#you go to the farmhouse
+    "choose_farmhouse": {  # you go to the farmhouse
         "farmer_in_house": {
             "dialogue": "You walk up to the farmhouse door, you can hear someone on the other side of the door",
             "choices": {
@@ -1043,8 +991,8 @@ farm_scene_dict = {
             }
         }
     },
-    "choose_barn": {#you go to the barn *not finished*
-        "farmer_in_house": {#random event condition
+    "choose_barn": {  # you go to the barn *not finished*
+        "farmer_in_house": {  # random event condition
             "dialogue": "You walk up to the barn door. its quiet, doesnt sound like anyone is in there",
             "choices": {
                 "option_one": {
@@ -1074,7 +1022,7 @@ farm_scene_dict = {
                     "Text": "ignore him and keep walking to the barn",
                     "id": 2,
                     "follow_up_text": "You keep walking to the barn, you see in the corner of your eye, the farmer getting up and making his way to you.",
-                    "next_checkpoint": "butcher_ending" #death
+                    "next_checkpoint": "butcher_ending"  # death
                 }
             }
         },
@@ -1096,6 +1044,7 @@ farm_scene_dict = {
             }
         }
     },
+    # checkpoint template
     "snoop_house": {
         "dialogue": "The house is decorated, looks old and lived in.",
         "choices": {
@@ -1109,7 +1058,7 @@ farm_scene_dict = {
                 "Text": "explore",
                 "id": 2,
                 "follow_up_text": "You walk around the house, looking at everything",
-                "condition" : "has_snooped_house", # needs to be false to snoop (avoid dupe items)
+                "condition": "has_snooped_house",  # needs to be false to snoop (avoid dupe items)
                 "next_checkpoint": "house_key_items"
             }
         }
@@ -1127,7 +1076,7 @@ farm_scene_dict = {
                 "Text": "explore",
                 "id": 2,
                 "follow_up_text": "You walk around the barn, looking at everything",
-                "condition" : "has_snooped_barn", # needs to be false to snoop (avoid dupe items)
+                "condition": "has_snooped_barn",  # needs to be false to snoop (avoid dupe items)
                 "next_checkpoint": "barn_key_items"
             }
         }
@@ -1166,7 +1115,60 @@ farm_scene_dict = {
             }
         }
     },
-    "meet_farmer": {#option to kill before test *not finished*
+    # crossroads (checkpoint template)
+    "farm_crossroads": {  # crossroads to leave the scene
+        "dialogue": "Where do you want to go?",
+        "choices": {
+            "option_one": {
+                "Text": "Go right [Swamp]",
+                "id": 1
+            },
+            "option_two": {
+                "Text": "Go left [Forest]",
+                "id": 2
+            },
+            "option_three": {
+                "Text": "Go forward [Village Center]",
+                "id": 3
+            }
+        }
+    },
+    "house_crossroads": {  # crossroads when leaving the house
+        "dialogue": "Where do you want to go?",
+        "choices": {
+            "option_one": {
+                "Text": "Go to the crossroads",
+                "id": 1,
+                "follow_up_text": "You turn around and walk back up the hill to the crossroads...",
+                "next_checkpoint": "farm_crossroads"
+            },
+            "option_two": {
+                "Text": "Go to barn",
+                "id": 2,
+                "follow_up_text": "You turn and walk towards the barn...",
+                "next_checkpoint": "choose_barn"
+            }
+        }
+    },
+    "barn_crossroads": {  # crossroads when leaving the barn
+        "dialogue": "Where do you want to go?",
+        "choices": {
+            "option_one": {
+                "Text": "Go to the crossroads",
+                "id": 1,
+                "follow_up_text": "You turn around and walk back up the hill to the crossroads...",
+                "next_checkpoint": "farm_crossroads"
+            },
+            "option_two": {
+                "Text": "Go to the farmhouse",
+                "id": 2,
+                "follow_up_text": "You turn and walk towards the house...",
+                "next_checkpoint": "choose_farmhouse"
+            }
+        }
+    },
+    #has no dialogue
+    "meet_farmer": {  # option to kill before test *not finished*
         "dialogue": None,
         "choices": {
             "option_kill": {
@@ -1174,7 +1176,7 @@ farm_scene_dict = {
                 "id": 1,
                 "condition": "has_weapon",
                 "locked_text": "You reach for a weapon you don’t have.",
-                "next_checkpoint": "text" #ending
+                "next_checkpoint": "text"  # ending
             },
             "option_talk": {
                 "Text": "Greet him politely.",
@@ -1184,11 +1186,12 @@ farm_scene_dict = {
             }
         }
     },
+    #test
     "trust_test": {
         "question_1": {
             "dialogue": "Howdy there stranger whats your name",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "tell the farmer your name",
                     "id": 1,
                     "follow_up_text": "Why thats a great name, my name is (placeholder), welcome to my farm",
@@ -1205,7 +1208,7 @@ farm_scene_dict = {
         "question_2": {
             "dialogue": "You alright partner? the farmer looks down at your bare feet covered in mud",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "ask for help",
                     "id": 1,
                     "follow_up_text": "The farmers face softens. Why dont you come in and i'll help you get all sorted",
@@ -1222,7 +1225,7 @@ farm_scene_dict = {
         "question_3": {
             "dialogue": "The farmer welcomes you into his home, gesturing to a nearby dining table for you to sit at. Like some ice tea, friend?",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "accept the ice tea",
                     "id": 1,
                     "follow_up_text": "The farmer pours you both a glass of ice tea setting it in front of you. Its my gammies famous recipe, generational ice tea right there",
@@ -1240,7 +1243,7 @@ farm_scene_dict = {
             "dialogue": "The farmer takes a sip, savoring the taste before smacking his lips. Yep, nothing beats good "
                         "old fashioned sweet tea. Yknow it was actually my grandpappi that started this farm here.",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "ask him more about his family",
                     "id": 1,
                     "follow_up_text": "The farmer smiles wide. His name was (placeholder)He helped discover this here village, course back then it was just a meateor site",
@@ -1258,7 +1261,7 @@ farm_scene_dict = {
             "dialogue": "My family helped keep this town fed. Back then we didn't have all the tools and knowledge we did, "
                         "but food preparation has always been what it once was. The farmer gives you a big gummy smile",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "smile as well",
                     "id": 1,
                     "follow_up_text": "The farmer looks at you as if studying your physique. You look like you could use a meal",
@@ -1276,7 +1279,7 @@ farm_scene_dict = {
             "dialogue": "The farmer stands up and walks into the kitchen. You hear sounds of dishes and cutlery. After awhile "
                         "the farmer comes back with 2 steaming bowls of stew. He sets the bowl in front of you. Cant help ya on an empty stomach, go ahead and dig in",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "accept and start eating the stew",
                     "id": 1,
                     "follow_up_text": "The farmer smiles as you start eating, enjoying his own bowl.",
@@ -1294,7 +1297,7 @@ farm_scene_dict = {
         "question_7": {
             "dialogue": "You remind me of a boy I met once. Tasted just like this. Shame what happened to him. Real shame.",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "stay silent",
                     "id": 1,
                     "follow_up_text": "The farmer looks back up at you smiling. Some people dont know how to accept such generous hospitality",
@@ -1312,7 +1315,7 @@ farm_scene_dict = {
             "dialogue": "The farmer tries to fish something out of his stew. 'Damn i just love these things', he holds up "
                         "what looks to be a small human toe, tossing it in his mouth and chewing.",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "finish the stew",
                     "id": 1,
                     "follow_up_text": "You both finish your stew in silence, the farmer humming a song that sound like a hymnn.",
@@ -1331,7 +1334,7 @@ farm_scene_dict = {
             "dialogue": "After the farmer finishes his stew he stands up and circles you, then suddenly holds a knife up to "
                         "your throat. 'Blessed are the divine meat' he inhales your scent deeply",
             "choices": {
-                "option_one": {#trust point
+                "option_one": {  # trust point
                     "Text": "stay still",
                     "id": 1,
                     "follow_up_text": "The farmer licks your cheek and pulls the knife away, setting it on the counter. 'Good meat never fights back'",
@@ -1342,13 +1345,13 @@ farm_scene_dict = {
                     "id": 2,
                     "follow_up_text": "The farmer moves the knife away quickly before you can grab it, but not before barely"
                                       " nicking your skin. He licks the blood off the knife and stares you down, 'Wickedness soaks deep into the marrow' ",
-                    "next_checkpoint": "text" #need checkpoint for when scene is over to calculate points and pick ending
+                    "next_checkpoint": "text"
+                    # need checkpoint for when scene is over to calculate points and pick ending
                 },
             }
         },
     },
-
-    #endings
+    # endings
     "butcher_ending": {
         "dialogue": "Before your able to make your way into the barn you feel a sharp pain in your back. "
                     "When you look down you see youve been stabbed",
