@@ -6,6 +6,8 @@
 # fog_density (heavy, light, none)
 
 # need a last location variable to know where your coming from in swamp or keep track of where player been
+#tags for analysis later?
+#NEW key in dict locked = hidden until condition met
 
 #dict key and values will change, below is foundation
 
@@ -34,6 +36,127 @@
         }
     },
 
+#purely for secret endings
+center_scene_dict = {
+    "intro": {
+            "dialogue": "You decide to go forward and come up on a small circle of houses, with an organic statue in the center. You cant see people, could it be abandoned?",
+            "choices": {
+                "option_one": {
+                    "Text": "Walk to the center",
+                    "id": 1,
+                    "follow_up_text": "You decide to continue on...",
+                    "next_checkpoint": "village_center"
+                },
+                "option_two": {
+                    "Text": "Leave",
+                    "id": 2,
+                    "follow_up_text": "You decide to head back to the crossroads",
+                    "next_checkpoint": "center_crossroads"
+                }
+            }
+    },
+    "center_crossroads": {  # crossroads to leave the scene *not finished*
+        "dialogue": "Where do you want to go?",
+        "choices": {
+            "option_one": {
+                "Text": "Go right [Farm]",
+                "id": 1
+            },
+            "option_two": {
+                "Text": "Go left [Church]",
+                "id": 2
+            },
+            "option_three": {
+                "Text": "Go forward [Swamp]",
+                "id": 3
+            }
+        }
+    },
+    "village_center": {
+        "dialogue": "The place looks empty. There are houses surrounding a small courtyard. There is a large statue in the middle of the courtyard, littered by strange letters on it.",
+        "choices": {
+            "option_one": {
+                "Text": "Try the houses",
+                "id": 1,
+                "follow_up_text": "You knock on some doors and try opening them. The curtains are drawn. You swear you can hear something behind a couple doors but no one answers.",
+            },
+            "option_two": {
+                "Text": "Go to the statue",
+                "id": 2,
+                "follow_up_text": "You walk towards the statue in the square...",
+                "next_checkpoint": "center_statue"
+            },
+            "option_three": {
+                "Text": "Turn and leave",
+                "id": 3,
+                "follow_up_text": "You turn around leaving the small village center behind",
+                "next_checkpoint": "center_crossroads"
+            }
+        }
+    },
+    "center_statue": {
+        "dialogue": "You walk towards the statue in the middle of the courtyard, there is a small fountain at its feet. "
+                    "The statue looks to be made of organic material, plants, roots and vines. It has strange words engraved into it...",
+        "choices": {
+            "option_one": {
+                "Text": "touch statue",
+                "id": 1,
+                "follow_up_text": "You touch the statue. Its made of intertwined sticks and mud. Its covered in plants and flowers and moss.",
+            },
+            "option_two": {
+                "Text": "use decoder",
+                "id": 2,
+                "follow_up_text": "You use the decoder to read the strange words. the first engraving across the base of the statue reads,"
+                                  " 'Quench the hands, heal the spring—One binds flesh to fury, the other frees the soul'"
+                                  "The second engraving running along the base of the fountain reads, 'Blood of the forest, tears of the sky, veins of the earth'",
+                "locked_text": "If only you could read these...",
+            },
+            "option_three": {
+                "Text": "leave",
+                "id": 3,
+                "follow_up_text": "You turn and leave, walking back to the crossroads...",
+                "next_checkpoint": "center_crossroads"
+            },
+            "option_four": {
+                "Text": "use the vials",
+                "id": 4,
+                "follow_up_text": "You walk up closer to the statue and fountain, pulling the 3 vials of liquid out of your pocket...",
+                "next_checkpoint": "statue_vials"
+            }
+        }
+    },
+    "statue_vials": {
+        "dialogue": "You approach the statue holding the vials...",
+        "choices": {
+            "option_one": {
+                "Text": "Pour into statues hands...",
+                "id": 1,
+                "follow_up_text": "You pour the vials into the statues hands one at a time...",
+                "next_checkpoint": "vessel_ending"
+            },
+            "option_two": {
+                "Text": "Pour into the fountain...",
+                "id": 2,
+                "follow_up_text": "You pour the vials into the fountain one at a time...",
+                "next_checkpoint": "cleansed_ending"
+            }
+        }
+    },
+    "cleansed_ending": {
+    "dialogue": "The water drains from the fountain slowly, then cracks open, revealing a spiraling staircase. You descend "
+                "and are placed in a sewer, a sign reads city with an arrow. You follow it. Youve escaped the village",
+    "ending_key": "cleansed_secret"
+    },
+    "vessel_ending": {
+    "dialogue": "You pour the vials into the statues hands, each one instantly soaking in. Suddenly the statue combusts, "
+                "a faint sickly odor surrounds you, you cluth your throat as it burns and suffocates your lungs. "
+                "Your bones break and reform as your muscles expand. Youve become their beast. You are the village.",
+    "ending_key": "the_vessel_secret"
+    }
+
+}
+
+#fog density is conditional
 swamp_scene_dict = {
     "intro": {
         "dialogue": { #or later on, change follow-up text to feel dynamic
