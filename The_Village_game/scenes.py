@@ -3,7 +3,9 @@
 #dynamic variable for player_state_dict =
 # farmer_location (inside, outside, barn)
 # church_state (empty, priest, basement)
+# fog_density (heavy, light, none)
 
+# need a last location variable to know where your coming from in swamp or keep track of where player been
 
 #dict key and values will change, below is foundation
 
@@ -32,6 +34,330 @@
         }
     },
 
+swamp_scene_dict = {
+    "intro": {
+        "dialogue": { #or later on, change follow-up text to feel dynamic
+            "from_church": "You decide to take a left and come up on a open swampy area",
+            "from_farm": "You decide to take a right and come up on a open swampy area"
+        },
+        "choices": {
+            "option_one": {
+                "Text": "walk into the swamp area",
+                "id": 1,
+                "follow_up_text": "Its just a swamp...",
+                "next_checkpoint": "start_position"
+            },
+            "option_two": {
+                "Text": "turn around",
+                "id": 2,
+                "follow_up_text": "Dont like the look of this place, better go...",
+                "next_checkpoint": "swamp_crossroads"
+            }
+        }
+    },
+    "swamp_crossroads": {  # crossroads to leave the scene *not finished*
+        "dialogue": "Where do you want to go?",
+        "choices": {
+            "option_one": {
+                "Text": "Go right [Church]",
+                "id": 1
+            },
+            "option_two": {
+                "Text": "Go left [Farm]",
+                "id": 2
+            },
+            "option_three": {
+                "Text": "Go forward [Village Center]",
+                "id": 3
+            }
+        }
+    },
+    "start_position": {
+        "dialogue": {
+            "heavy_fog": {
+                "dialogue": "As you get closer to the swamp, the fog begins to get heavy, its hard to see anything",
+                "choices": {
+                    "option_one": {
+                        "Text": "Walk aimlessly",
+                        "id": 1,
+                        "follow_up_text": "Despite the alarming silence around this church you decide to walk in the door",
+                        "next_checkpoint": "inside_swamp"
+                    },
+                    "option_two": {
+                        "Text": "Turn and Leave",
+                        "id": 2,
+                        "follow_up_text": "Not worth getting lost in here...",
+                        "next_checkpoint": "swamp_crossroads"
+                    }
+                }
+            },
+            "light_fog": {
+                "dialogue": "As you walk more into the swamp, the fog gets a little heavier, you can faintly see the outline of a structure in the distance",
+                "choices": {
+                    "option_one": {
+                        "Text": "Continue Walking",
+                        "id": 1,
+                        "follow_up_text": "Its justa little fog, its not like your blind",
+                        "next_checkpoint": "inside_swamp"
+                    },
+                    "option_two": {
+                        "Text": "Turn and Leave",
+                        "id": 2,
+                        "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
+                        "next_checkpoint": "swamp_crossroads"
+                    }
+                }
+            },
+            "no_fog": {
+                "dialogue": "As you get closer to the swamp you can see a large stone structure in the center. It looks to have a pedestal in the middle.",
+                "choices": {
+                    "option_one": {
+                        "Text": "keep walking",
+                        "id": 1,
+                        "follow_up_text": "you walk towards the stone structure...",
+                        "next_checkpoint": "inside_swamp"
+                    },
+                    "option_two": {
+                        "Text": "Turn and Leave",
+                        "id": 2,
+                        "follow_up_text": "Something about the energy here isn't right, you walk away...",
+                        "next_checkpoint": "swamp_crossroads"
+                    }
+                }
+            }
+        }
+    },
+    "inside_swamp": {
+        "dialogue": {
+            "heavy_fog": {
+                "dialogue": "You walk forward with your hands stretched out, you hear rustling in the distance, you can only see 1 foot in front of you. "
+                            "Suddenly you make contact with a stone structure, you can see some kind of cube on its pedestal.",
+                "choices": {
+                    "option_one": {
+                        "Text": "approach the cube",
+                        "id": 1,
+                        "follow_up_text": "The cube is small and metallic, it flashes with a bright light...",
+                        "next_checkpoint": "intuition_test"
+                    },
+                    "option_two": {
+                        "Text": "Turn and Leave",
+                        "id": 2,
+                        "follow_up_text": "This is too weird, time to go...",
+                        "next_checkpoint": "swamp_crossroads"
+                    }
+                }
+            },
+            "light_fog": {
+                "dialogue": "You walk towards the structure. As you get closer you notice a pedestal in the center, it looks like a metal cube is on it...",
+                "choices": {
+                    "option_one": {
+                        "Text": "approach the metal cube",
+                        "id": 1,
+                        "follow_up_text": "Something special enough to be on a pedestal is worth taking a look at",
+                        "next_checkpoint": "intuition_test"
+                    },
+                    "option_two": {
+                        "Text": "Look around",
+                        "id": 2,
+                        "follow_up_text": "Maybe you should check the surrounding area before...",
+                        "next_checkpoint": "swamp_key_items"
+                    },
+                    "option_three": {
+                        "Text": "Turn and Leave",
+                        "id": 3,
+                        "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
+                        "next_checkpoint": "swamp_crossroads"
+                    }
+                }
+            },
+            "no_fog": {
+                "dialogue": "You walk closer to the stone structure. You can see footprints and dragging marks within the mud and "
+                            "earth, someone or something put up a fight here. There are strange markings on the structure, symbols. "
+                            "In the center of the stone structure is a pedestal with a metal like cube in the center.",
+                "choices": {
+                    "option_one": {
+                        "Text": "Approach the cube",
+                        "id": 1,
+                        "follow_up_text": "This could be interesting....",
+                        "next_checkpoint": "intuition_test"
+                    },
+                    "option_two": {
+                        "Text": "look around",
+                        "id": 2,
+                        "follow_up_text": "There could be more here to discover...",
+                        "next_checkpoint": "swamp_key_items"
+                    },
+                    "option_three": {
+                        "Text": "Turn and Leave",
+                        "id": 3,
+                        "follow_up_text": "Something about the energy here isn't right, you walk away...",
+                        "next_checkpoint": "swamp_crossroads"
+                    }
+                }
+            }
+        }
+    },
+    "swamp_key_items": {
+        "dialogue": {
+            "light_fog": {
+                "dialogue": "You look around the surrounding area and spot a hammer",
+                "choices": {
+                    "option_one": {
+                        "Text": "take the hammer",
+                        "id": 1,
+                        "follow_up_text": "Could be useful...",
+                        "next_checkpoint": "approach_cube"
+                    },
+                    "option_two": {
+                        "Text": "Leave the hammer",
+                        "id": 2,
+                        "follow_up_text": "its just a hammer",
+                        "next_checkpoint": "approach_cube"
+                    }
+                }
+            },
+            "no_fog": {
+                "dialogue": "You look around the surrounding area. You find a hammer and a rusty key. You also find strange "
+                            "letters on the side of the structure, if only you could decipher them. ",
+                "choices": {
+                    "option_one": {
+                        "Text": "take the hammer and key",
+                        "id": 1,
+                        "follow_up_text": "This could be interesting....",
+                        "next_checkpoint": "approach_cube"
+                    },
+                    "option_two": {
+                        "Text": "Take the items and use decoder",
+                        "id": 2,
+                        "condition": "has_decoder",
+                        "locked_text": "How could you decode these...",
+                        "follow_up_text": "you pocket the hammer and key, then use your decoder to read the strange words. (placeholder)",
+                        "next_checkpoint": "approach_cube"
+                    },
+                    "option_three": {
+                        "Text": "Leave the hammer and key",
+                        "id": 3,
+                        "follow_up_text": "Its a hammer and a rusty key, what could you possibly need these for...",
+                        "next_checkpoint": "approach_cube"
+                    }
+                }
+            }
+        }
+    },
+    "approach_cube": {
+        "dialogue": "After collecting your items you see the cube flash with a bright light...",
+        "choices": {
+            "option_one": {
+                "Text": "approach",
+                "id": 1,
+                "follow_up_text": "Its just a funny looking cube...",
+                "next_checkpoint": "intuition_test"
+            },
+            "option_two": {
+                "Text": "back away",
+                "id": 1,
+                "follow_up_text": "The cube pulses with the light, it draws you close",
+                "next_checkpoint": "intuition_test"
+            }
+        }
+    },
+    "intuition_test": {
+        "question_1": {
+            "dialogue": "The cube hums...",
+            "choices": {
+                "option_one": {
+                    "Text": "hum with it",
+                    "id": 1,
+                    "next_checkpoint": "question_2"
+                },
+                "option_two": {
+                    "Text": "touch it",
+                    "id": 2,
+                    "next_checkpoint": "question_2"
+                },
+                "option_three": {
+                    "Text": "pick it up",
+                    "id": 3,
+                    "next_checkpoint": "question_2"
+                }
+            }
+        },
+        "question_2": {
+            "dialogue": "A low frequency starts vibrating in your skull. You feel words that aren’t yours:"
+                            "'What are you made of?'",
+            "choices": {
+                "option_one": {
+                    "Text": "speak back",
+                    "id": 1,
+                    "next_checkpoint": "question_3"
+                },
+                "option_two": {
+                    "Text": "stay silent",
+                    "id": 2,
+                    "next_checkpoint": "question_3"
+                },
+                "option_three": {
+                    "Text": "tell it to get out",
+                    "id": 3,
+                    "next_checkpoint": "question_3"
+                }
+            }
+        },
+        "question_3": {# *not finished*
+            "dialogue": "A beam shines down on you...",
+            "choices": {
+                "option_one": {
+                    "Text": "stare up to it",
+                    "id": 1,
+                    "next_checkpoint": "text"
+                },
+                "option_two": {
+                    "Text": "stay still",
+                    "id": 2,
+                    "next_checkpoint": "text"
+                },
+                "option_three": {
+                    "Text": "run away",
+                    "id": 3,
+                    "next_checkpoint": "text"
+                }
+            }
+        }
+    },
+    "make_choice": { #choose for ending after test if you got the curious result
+        "dialogue": "The Aliens are captivated by your curiosity they wish for you to stay so they may study you",
+        "choices": {
+            "option_one": {
+                "Text": "Stay on the ship",
+                "id": 1,
+                "next_checkpoint": "belong_ending"
+            },
+            "option_two": {
+                "Text": "Ask to leave",
+                "id": 2,
+                "next_checkpoint": "intuition_ending"
+            }
+        }
+    },
+    #endings
+    "rejected_ending": {
+    "dialogue": "Your pathetic, the aliens probe you, dissect you, then discard you.",
+    "ending_key": "rejected_specimen"
+    },
+    "probed_ending": {
+    "dialogue": "Your average, the aliens probe you, wipe your memory and send you back to the forest",
+    "ending_key": "probed_and_confused"
+    },
+    "belong_ending": {
+    "dialogue": "The Aliens cheer as they usher you into the bridge. Their captain standing tall, with an outreached hand...",
+    "ending_key": "you_belong_with_us"
+    },
+    "intuition_ending": {
+    "dialogue": "The Aliens are sad to see you go but wish you all the best",
+    "ending_key": "intuition_test_passed"
+    },
+
+}
 
 #state of the church is conditional
 church_scene_dict = {
