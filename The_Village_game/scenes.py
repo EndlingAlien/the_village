@@ -58,6 +58,17 @@ will use explore_flags and inventory_need as "tags" for if you snooped (barn, fa
     },
     '''
 
+#TODO: These endings can continue game, dialogue repeats, need flags
+# May need to create extra scenes for 'after test' or 'after killed'
+'''
+intuition_ending - swamp
+faith_ending - church
+defense_ending, farmer_death_ending, trust_ending - farm
+'''
+
+# TODO After player has explored ares (snoop_barn) add a has_been tag, ex: has_been: has_snooped_barn
+# function will check if scene_dict[key] == player_stats[explore_flags[key]] *in depth notes in notebook
+
 start_scene_dict = {
     "intro": {
         "dialogue": "You wake up alone in a forest surrounded by trees",
@@ -610,11 +621,11 @@ swamp_scene_dict = {
     },
     # endings
     "rejected_ending": {
-        "dialogue": "Your pathetic, the aliens probe you, dissect you, then discard you. you have a couple of cuts and bruises but other than that your fine....maybe...",
+        "dialogue": "Your pathetic, the aliens probe you, dissect you, then discard you.",
         "ending_key": "rejected"
     },
     "probed_ending": {
-        "dialogue": "Your average, the aliens probe you, wipe your memory and send you back to the forest",
+        "dialogue": "Your average, the aliens probe you, wipe your memory and send you back to the forest.Your found by a farmer the next day...",
         "ending_key": "probed"
     },
     "belong_ending": {
@@ -622,8 +633,10 @@ swamp_scene_dict = {
         "ending_key": "you_belong"
     },
     "intuition_ending": {
-        "dialogue": "The Aliens are sad to see you go but wish you all the best",
-        "ending_key": "intuition_pass"
+        "dialogue": "The Aliens are sad to see you go but wish you all the best. They give you a vial filled with blue liquid as a parting gift",
+        "ending_key": "intuition_pass",
+        "next_checkpoint": "swamp_crossroads",
+        "checkpoint_scene": "swamp"
     },
 }
 
@@ -891,7 +904,7 @@ church_scene_dict = {
                 "id": 1,
                 "follow_up_text": "You take the items, no use in them collecting dust here",
                 "locked_text": "You have already picked up these items",
-                "next_checkpoint": "church_key_items",
+                "next_checkpoint": "church_crossroads",
                 "checkpoint_scene": "church",
                 "inventory_need": {
                     "has_bible": False,
@@ -1054,6 +1067,26 @@ church_scene_dict = {
             }
         }
     },
+    "after_test": {  # after test explore
+            "dialogue": "The priest stands and resumes his hymn and silent prayers at teh front, your free to explore the church",
+            "choices": {
+                "option_one": {
+                    "Text": "explore",
+                    "id": 1,
+                    "follow_up_text": "You decide to walk towards the church...",
+                    "next_checkpoint": "church_key_items",
+                    "checkpoint_scene": "church"
+                },
+                "option_two": {
+                    "Text": "leave",
+                    "id": 2,
+                    "follow_up_text": "You decide to turn around walking back to where you came from. "
+                                      "Theres a crossroads...",
+                    "next_checkpoint": "church_crossroads",
+                    "checkpoint_scene": "church"
+                }
+            }
+    },
     # endings
     "believer_ending": {
         "dialogue": "the priest sees light within your eyes, youve been asked to join the village",
@@ -1062,6 +1095,8 @@ church_scene_dict = {
     "faith_ending": {
         "dialogue": "The priest respects your autonomy as you do his. Your free to explore the church respectfully. Priest tells you to seek answers in the center.",
         "ending_key": "faith_pass",
+        "next_checkpoint": "after_test",
+        "checkpoint_scene": "church"
     },
     "heretics_ending": {
         "dialogue": "The priest is insulted by your disrespect. He opens the door to the basement ringing a bell. Your put in a cage to be sacrificed in the ritual.",
@@ -1609,6 +1644,30 @@ farm_scene_dict = {
             }
         },
     },
+    "fail_choice": {  # failed the test, might have a weapon
+            "dialogue": "The farmer smiles and shakes his head walking back into the kitchen, when he returns hes wearing a mask and holding a "
+                        "butcher knife. 'Grandmami used to always say the wicked are packed with FLAVOUR' ",
+            "choices": {
+                "option_one": {
+                    "Text": "try to run",
+                    "id": 1,
+                    "next_checkpoint": "tainted_ending",
+                    "checkpoint_scene": "farm"
+                },
+                "option_two": {
+                    "Text": "Attack",
+                    "id": 2,
+                    "locked_text": "You reach for your weapon, its not there...",
+                    "next_checkpoint": "defense_ending",
+                    "checkpoint_scene": "farm",
+                    "inventory_need": {
+                        "has_knife": True,
+                        "has_screwdriver": True,
+                        "has_hammer": True
+                    }
+                }
+            }
+    },
     # endings
     "butcher_ending": {
         "dialogue": "Before your able to make your way into the barn you feel a sharp pain in your back. "
@@ -1621,7 +1680,9 @@ farm_scene_dict = {
     },
     "defense_ending": {
         "dialogue": "The farmer attacks you but you have a weapon. Its a tedious fight but you overcome him, you did what you had to do",
-        "ending_key": "self_defense"
+        "ending_key": "self_defense",
+        "next_checkpoint": "farm_crossroads",
+        "checkpoint_scene": "farm"
     },
     "farmer_death_ending": {
         "dialogue": "You kill the farmer, his body lies at your feet.",

@@ -4,12 +4,21 @@ import random as r
 
 # region Variables
 
+# TODO: change test_dict instances to game_condition when done testing
+# game_condition = initialize_game_conditions(condition_dict)
+test_dict = {
+    "farm": 'farmer_outside',
+    "swamp": 'light_fog',
+    "church": 'basement_open'
+}
 
+#region Scene Vars
 farm_scene = sc.farm_scene_dict
 church_scene = sc.church_scene_dict
 swamp_scene = sc.swamp_scene_dict
 center_scene = sc.center_scene_dict
 start_scene = sc.start_scene_dict
+#endregion
 
 # dict containing all possible conditions for respective scenes
 condition_dict = {
@@ -17,15 +26,7 @@ condition_dict = {
     "swamp": ['heavy_fog', 'light_fog', 'no_fog'],
     "church": ['church_is_empty', 'priest_inside', 'basement_open']
 }
-
-# TODO: change test_dict instances to game_condition when done testing
-# game_condition = initialize_game_conditions(condition_dict)
-test_dict = {
-    "farm": 'farmer_in_house',
-    "swamp": 'light_fog',
-    "church": 'priest_inside'
-}
-
+#for load_info to load the proper scene
 scene_dict = {
     "farm": farm_scene,
     "swamp": swamp_scene,
@@ -33,7 +34,6 @@ scene_dict = {
     "center": center_scene,
     "start": start_scene
 }
-
 # for later use in db
 ending_flags = {
     "cleansed": False,
@@ -53,7 +53,6 @@ ending_flags = {
     "tainted_meat": False,
     "trust_pass": False
 }
-
 #purely for making life easy in load_test
 questions = [
     "question_1",
@@ -66,8 +65,7 @@ questions = [
     "question_8",
     "question_9"
 ]
-
-#answer to trust and thresholds for faith and intuition
+#Answers to trust test and thresholds for faith and intuition tests
 test_answers_dict = {
     "trust": {
         "trust_1": 2,
@@ -86,20 +84,22 @@ test_answers_dict = {
         0: "death"  # 0 to 9 → failed
     },
     'intuition': {
-        8: "curious",
-        5: "pass",
-        0: "boring"
+        8: "curious",  # 8 to 9 → passed
+        5: "pass",  # 5 to 7 → survived
+        0: "boring"  # 0 to 5 → failed
     },
 
 }
-
+#Checks in load_info if checkpoint_name is a test
+test_checkpoint_names = ['trust_test', 'faith_test', 'intuition_test']
 
 # endregion
 
-# TODO: go through tests, change answers around, make func for each test to calculate score and assign correct ending
-# TODO: keep track of: what player has in inventory, where they've explored, what choices theyve made
+# TODO: Have test funcs assign correct ending
+# TODO: keep track of: what player has in inventory, where they've explored, what choices theyve made (done for tests)
 # TODO: still need to create logic for locked text vs follow up
-# TODO: if user does input something valid catch it
+# TODO: Implement persistent flags and save system to prevent repeated ending dialogue on reload
+
 
 # region Functions
 def initialize_game_conditions(cond_dict):
@@ -110,15 +110,15 @@ def initialize_game_conditions(cond_dict):
     return {con: r.choice(options) for con, options in condition_dict.items()}
 
 
-def load_info(dic, scene_name, checkpoint_key):
+def load_info(scene, scene_name, checkpoint_key):
     """
     In charge of loading the correct dialogue and options from checkpoint keyword
-    :param dic: scene dictionary to search within
+    :param scene: scene dictionary to search within
     :param scene_name: the name of scene to search
     :param checkpoint_key: name of key in scene dictionary
     """
     current_cond = test_dict.get(scene_name, None)
-    checkpoint_data = dic.get(checkpoint_key, {})
+    checkpoint_data = scene.get(checkpoint_key, {})
 
     # Determine if this checkpoint uses conditional branching
     if current_cond and current_cond in checkpoint_data:
@@ -142,32 +142,47 @@ def load_info(dic, scene_name, checkpoint_key):
     for key in choices:
         print(f"{choices[key]['id']}: {choices[key]['Text']}")
 
-    # Get user input
-    x = int(input("Choose an option: "))
+    # Loop until valid input is received
+    valid_input = False
+    while not valid_input:
+        try:
+            x = int(input("Choose an option: "))
+            for key in choices:
+                if x == choices[key]['id']:
+                    follow_text = choices[key].get('follow_up_text') or ''
+                    next_cp = choices[key]['next_checkpoint']
+                    next_scene = choices[key]['checkpoint_scene']
+                    scene_name = scene_dict[next_scene]
+                    print(follow_text)
+                    if next_cp in test_checkpoint_names:
+                        load_test(scene_name, next_cp)
+                    elif '_ending' in next_cp:
+                        load_ending(scene_name, next_cp)
+                    else:
+                        load_info(scene_name, next_scene, next_cp)
+                    valid_input = True
+                    break  # exit for-loop
+            if not valid_input:
+                print("Invalid choice. Try again.")
+        except ValueError:
+            print("Please enter a number.")
 
-    # Find matching choice and load follow-up
-    for key in choices:
-        if x == choices[key]['id']:
-            follow_text = choices[key]['follow_up_text']
-            next_cp = choices[key]['next_checkpoint']
-            next_scene = choices[key]['checkpoint_scene']
-            print(follow_text)
-            load_info(scene_dict[next_scene], next_scene, next_cp)
-            break
-    else:
-        print("Invalid choice.")  # Optional: if no match found
 
-
-def load_test(dic, checkpoint_key):
+def load_test(scene, checkpoint_key):
+    """
+    In charge of loading the correct dialogue and options from tests
+    :param scene: scene dictionary to search within
+    :param checkpoint_key: name of key in scene dictionary
+    """
     index = 0
     test_choices = {}
     test_name = checkpoint_key.split('_')[0]
     test_answers = test_answers_dict[test_name]
-    key_amount = dic.get(checkpoint_key, {}).keys()
+    key_amount = list(scene.get(checkpoint_key, {}))
 
     print()
     while index < len(key_amount):
-        test_data = dic.get(checkpoint_key, {})
+        test_data = scene.get(checkpoint_key, {})
         question_data = test_data.get(questions[index], {})
 
         # Get tag for choice dict
@@ -182,21 +197,29 @@ def load_test(dic, checkpoint_key):
         for choice_key, choice_data in choices.items():
             print(f"{choice_data['id']}: {choice_data['Text']}")
 
-        x = int(input("Choose an option: "))
-        # store tag and choice in dict
-        test_choices[tag] = x
+        valid_input = False
+        while not valid_input:
+            try:
+                x = int(input("Choose an option: "))
+                # store tag and choice in dict
+                if tag:
+                    test_choices[tag] = x
+                else:
+                    print("Warning: question missing tag, answer not recorded")
 
-        # Find matching choice and load follow-up
-        for key in choices:
-            if x == choices[key]['id']:
-                follow_text = choices[key].get('follow_up_text') or ''
-                print(follow_text)
-                break
-        else:
-            print("Invalid choice.")  # Optional: if no match found
-
+                # Find matching choice and load follow-up
+                for key in choices:
+                    if x == choices[key]['id']:
+                        follow_text = choices[key].get('follow_up_text') or ''
+                        print(follow_text)
+                        valid_input = True
+                        break # exit for-loop
+                if not valid_input:
+                    print("Invalid choice. Try Again.")
+            except ValueError:
+                print("Please enter a number")
         index += 1
-    # when you finish the test calculate choices to see how many you got right/wrong
+    # When you finish the test, calculate choices
     if test_name == 'trust':
         calculate_trust_result(test_answers, test_choices)
     elif test_name == 'faith':
@@ -206,6 +229,7 @@ def load_test(dic, checkpoint_key):
 
 
 #region Calculate Test Results
+# TODO: dialogue repeats for load_info call in all func endings
 def calculate_trust_result(test_answers, test_choices):
     # make sure you hold onto the players answers for data analysis report
     trust_test_choices = test_choices
@@ -215,7 +239,13 @@ def calculate_trust_result(test_answers, test_choices):
         if test_choices.get(key) == answer:
             correct += 1
     print(correct)
-    # redirect to correct ending
+    match correct:
+        case 9:
+            load_ending(farm_scene, 'trust_ending')
+        case _ if correct >= 7:
+            load_ending(farm_scene, 'kindness_ending')
+        case _ if correct < 7:
+            load_info(farm_scene, 'farm', 'fail_choice')
 
 
 def calculate_faith_result(test_answers, test_choices):
@@ -225,8 +255,14 @@ def calculate_faith_result(test_answers, test_choices):
     score = sum(test_choices.values())
     for threshold in sorted(test_answers.keys(), reverse=True):
         if score >= threshold:
-            print(test_answers[threshold])
             break
+    match score:
+        case _ if score >= 15:
+            load_ending(church_scene, 'believer_ending')
+        case _ if score >= 10:
+            load_ending(church_scene, 'faith_ending')
+        case _ if score < 10:
+            load_ending(church_scene, 'heretics_ending')
 
 
 def calculate_intuition_result(test_answers, test_choices):
@@ -236,17 +272,39 @@ def calculate_intuition_result(test_answers, test_choices):
     score = sum(test_choices.values())
     for threshold in sorted(test_answers.keys(), reverse=True):
         if score >= threshold:
-            print(test_answers[threshold])
             break
+    match score:
+        case _ if score >= 8:
+            load_info(swamp_scene, 'swamp', 'make_choice')
+        case _ if score >= 5:
+            load_ending(swamp_scene, 'probed_ending')
+        case _ if score < 5:
+            load_ending(swamp_scene, 'rejected_ending')
 
 #endregion
 
-# endregion
+
+def load_ending(scene, checkpoint_key):
+    active_block = scene.get(checkpoint_key)
+    dialogue = active_block.get('dialogue')
+    if active_block.get('next_checkpoint') and active_block.get('checkpoint_scene'):
+        scene_name = scene_dict[active_block.get('checkpoint_scene')]
+        cp_name = active_block.get('checkpoint_scene')
+        cp = active_block.get('next_checkpoint')
+        print(dialogue)
+        load_info(scene_name, cp_name, cp)
+    print(dialogue)
+
+    #add ending flag to db
+    #need a flag for below cause some endings dont finish the game< we need to know when the game is done
+    #will eventually call a func that will do a quick analysis on player choices
+
+#endregion
 
 
-
-
+#for testing
 load_test(swamp_scene, 'intuition_test')
 
-# load_info(start_scene, None, 'intro')
-# load_checkpoint(farm_scene, 'farm', 'start_position')
+#load_info(church_scene, 'church', 'intro')
+
+
