@@ -2,6 +2,8 @@
 import scenes as sc
 import random as r
 
+#region Variables
+
 farm_scene = sc.farm_scene_dict
 church_scene = sc.church_scene_dict
 swamp_scene = sc.swamp_scene_dict
@@ -31,27 +33,39 @@ scene_dict = {
     "start": start_scene
 }
 
-# TODO: make a list or dict of ending names to check if checkpoint keyword == so game can quit
-# TODO: ending catalogue.py maybe??
+#for later use in db
+ending_flags = {
+    "cleansed": False,
+    "vessel": False,
+    "rejected": False,
+    "probed": False,
+    "you_belong": False,
+    "intuition_pass": False,
+    "believer": False,
+    "faith_pass": False,
+    "heretic": False,
+    "priest_death": False,
+    "altar": False,
+    "butcher": False,
+    "kindness": False,
+    "self_defense": False,
+    "tainted_meat": False,
+    "trust_pass": False
+}
+
+#endregion
 
 # TODO: go through tests, change answers around, make func for each test to calculate score and assign correct ending
-# TODO: keep track of: what player has in inventory, where theyve explored, what choices theyve made
-# TODO: create a tag for each decision (no need for intro or crossroads, or non-important) think walking dead stats at end on display
+# TODO: keep track of: what player has in inventory, where they've explored, what choices theyve made
 # TODO: still need to create logic for locked text vs follow up
+
+#region Functions
 def initialize_game_conditions(cond_dict):
     """
     Assigns the dynamic conditions to the scenes at the beginning of the game
     :param cond_dict: conditional dictionary holding game conditions
     """
     return {con: r.choice(options) for con, options in condition_dict.items()}
-
-
-# do this later --------
-# need to account for :
-# *DONE* = dialogue/null dialogue, conditional/null choices, follow-up/
-# locked text, conditions
-# ----------
-
 
 def load_info(dic, scene_name, checkpoint_key):
     """
@@ -100,7 +114,14 @@ def load_info(dic, scene_name, checkpoint_key):
     else:
         print("Invalid choice.")  # Optional: if no match found
 
+#endregion
+
+#test chekpoints: intuition_test, trust_test, faith_test
+#test question tags(int incremnets by 1): faith_1, trust_1, intuition_1
 
 
-load_info(start_scene, None, 'intro')
+
+
+
+#load_info(start_scene, None, 'intro')
 #load_checkpoint(farm_scene, 'farm', 'start_position')
