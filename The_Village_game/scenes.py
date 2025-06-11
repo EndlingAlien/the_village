@@ -5,17 +5,18 @@
 # church_state (empty, priest, basement)
 # fog_density (heavy, light, none)
 
-# need a last location variable to know where your coming from in swamp or keep track of where player been
-# tags for analysis later?
-# NEW key in dict locked = hidden until condition met
-#none of the crossroads have follow-up_text or next_checkpoint, //// none finished
-#need dialogue for when you cant 'progress' in scene
-# dict key and values will change, below is foundation
 
-#conditions to be met = has_decoder, has_weapon, has_mask
+# player been tags for analysis later?
+
+# dict key and values will change; below is foundation
+
+# the inventory tags = has_decoder, has_knife, has_mask, has_hammer, has_key, has_screwdriver, has_bible, has_letter
+# the explored tags = has_snooped_house, has_snooped_barn, has_snooped_church, has_snooped_swamp, has_all_vials
+
 
 # dict template
-'''"checkpoint": {
+'''
+"checkpoint": {
         "dialogue": "text",
         "choices": {
             "option_one": {
@@ -30,31 +31,73 @@
                 "follow_up_text": "text",
                 "next_checkpoint": "text"
             },
-            "option_three": {
-                "Text": "text",
-                "id": 3,
-                "follow_up_text": "text",
-                "next_checkpoint": "text"
+            "option_example": { /////////#this is the key\\\\\\\
+                "Text": "The choice text", -string
+                "id": int of what to input to choose this option, - int
+                "follow_up_text": "follow-up text for after you pick a choice" -string
+                "next_checkpoint": "name of checkpoint keyword this option leads to", -string
+                "checkpoint_scene": "name of scene this option leads to", -string
+                #all should have ^^^
+                Below is optional:
+                "locked_text": "What displays when you don't have item..." - string
+                "been_used": "for one use choices; locked text will be replace follow-up" -bool
+                "inventory_need": "what you need in your inventory to do this option", -dict
+                "explore_flag":"keep track of what the player has discovered", -dict
+                "locked": "won't display/cant do until a condition is met", -dict
+                "ending_key": "the key used for keep track of what endings have been unlocked"
             }
         }
-    },'''
+    },
+    '''
+
+start_scene_dict = {
+    "intro": {
+        "dialogue": "You wake up alone in a forest surrounded by trees",
+        "choices": {
+            "option_one": {
+                "Text": "go forward [Village Center]",
+                "id": 1,
+                "follow_up_text": "you start walking forward...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "center"
+            },
+            "option_two": {
+                "Text": "go right [Farm]",
+                "id": 2,
+                "follow_up_text": "you start walking right...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "farm"
+            },
+            "option_three": {
+                "Text": "go left [Church]",
+                "id": 3,
+                "follow_up_text": "you start walking left...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "church"
+            }
+        }
+    },
+}
 
 # purely for secret endings
 center_scene_dict = {
     "intro": {
-        "dialogue": "You decide to go forward and come up on a small circle of houses, with an organic statue in the center. You cant see people, could it be abandoned?",
+        "dialogue": "After awhile, you come up on a small circle of houses, with an organic statue in the center. "
+                    "You cant see people, could it be abandoned?",
         "choices": {
             "option_one": {
                 "Text": "Walk to the center",
                 "id": 1,
                 "follow_up_text": "You decide to continue on...",
-                "next_checkpoint": "village_center"
+                "next_checkpoint": "village_center",
+                "checkpoint_scene": "center"
             },
             "option_two": {
                 "Text": "Leave",
                 "id": 2,
-                "follow_up_text": "You decide to head back to the crossroads",
-                "next_checkpoint": "center_crossroads"
+                "follow_up_text": "You decide to head back to the crossroads...",
+                "next_checkpoint": "center_crossroads",
+                "checkpoint_scene": "center"
             }
         }
     },
@@ -63,90 +106,128 @@ center_scene_dict = {
         "choices": {
             "option_one": {
                 "Text": "Go right [Farm]",
-                "id": 1
+                "id": 1,
+                "follow_up_text": "you start walking right...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "Go left [Church]",
-                "id": 2
+                "id": 2,
+                "follow_up_text": "you start walking left...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "church"
             },
             "option_three": {
                 "Text": "Go forward [Swamp]",
-                "id": 3
+                "id": 3,
+                "follow_up_text": "you start walking forward...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "swamp"
             }
         }
     },
     "village_center": {
-        "dialogue": "The place looks empty. There are houses surrounding a small courtyard. There is a large statue in the middle of the courtyard, littered by strange letters on it.",
+        "dialogue": "The place looks empty. There are houses surrounding a small courtyard. There "
+                    "is a large statue in the middle of the courtyard, littered by strange "
+                    "letters on it.",
         "choices": {
             "option_one": {
                 "Text": "Try the houses",
                 "id": 1,
-                "follow_up_text": "You knock on some doors and try opening them. The curtains are drawn. You swear you can hear something behind a couple doors but no one answers.",
+                "follow_up_text": "You knock on some doors and try opening them. The curtains are "
+                                  "drawn. You swear you can hear something behind a couple doors "
+                                  "but no one answers.",
+                "next_checkpoint": "village_center",
+                "checkpoint_scene": "center",
+                "locked_text": "You've already tried this...",
+                "been_used": False
             },
             "option_two": {
                 "Text": "Go to the statue",
                 "id": 2,
                 "follow_up_text": "You walk towards the statue in the square...",
-                "next_checkpoint": "center_statue"
+                "next_checkpoint": "center_statue",
+                "checkpoint_scene": "center"
             },
             "option_three": {
                 "Text": "Turn and leave",
                 "id": 3,
                 "follow_up_text": "You turn around leaving the small village center behind",
-                "next_checkpoint": "center_crossroads"
+                "next_checkpoint": "center_crossroads",
+                "checkpoint_scene": "center"
             }
         }
     },
     "center_statue": {
-        "dialogue": "You walk towards the statue in the middle of the courtyard, there is a small fountain at its feet. "
-                    "The statue looks to be made of organic material, plants, roots and vines. It has strange words engraved into it...",
+        "dialogue": "You walk towards the statue in the middle of the courtyard, there is a small "
+                    "fountain at its feet. The statue looks to be made of organic material, "
+                    "plants, roots and vines. It has strange words "
+                    "engraved into it...",
         "choices": {
             "option_one": {
                 "Text": "touch statue",
                 "id": 1,
-                "follow_up_text": "You touch the statue. Its made of intertwined sticks and mud. Its covered in plants and flowers and moss.",
+                "follow_up_text": "You touch the statue. Its made of intertwined sticks and mud. "
+                                  "Its covered in plants and flowers and moss.",
+                "next_checkpoint": "center_statue",
+                "checkpoint_scene": "center",
+                "been_used": False,
+                "locked_text": "You already touched the creepy earth statue, why are you trying to touch it again..."
             },
             "option_two": {
                 "Text": "use decoder",
                 "id": 2,
                 "follow_up_text": "You use the decoder to read the strange words. the first engraving across the base of the statue reads,"
-                                  " 'Quench the hands, heal the spring—One binds flesh to fury, the other frees the soul'"
-                                  "The second engraving running along the base of the fountain reads, 'Blood of the forest, tears of the sky, veins of the earth'",
+                                  "'Quench the hands, heal the spring—One binds flesh to fury, the other frees the soul 'The second engraving "
+                                  "running along the base of the fountain reads, 'Blood of the forest, tears of the sky, veins of the earth'",
+                "next_checkpoint": "center_statue",
+                "checkpoint_scene": "center",
                 "locked_text": "If only you could read these...",
-                'condition': 'has_decoder'
+                "inventory_need": {
+                    "has_decoder": False
+                }
             },
             "option_three": {
                 "Text": "leave",
                 "id": 3,
                 "follow_up_text": "You turn and leave, walking back to the crossroads...",
-                "next_checkpoint": "center_crossroads"
+                "next_checkpoint": "center_crossroads",
+                "checkpoint_scene": "center"
             },
             "option_four": {
                 "Text": "use the vials",
                 "id": 4,
-                "follow_up_text": "You walk up closer to the statue and fountain, pulling the 3 vials of liquid out of your pocket...",
-                "next_checkpoint": "statue_vials"
+                "follow_up_text": "You walk up closer to the statue and fountain, pulling the 3 "
+                                  "vials of liquid out of your pocket...",
+                "next_checkpoint": "statue_vials",
+                "checkpoint_scene": "center",
+                "locked": {
+                    "has_all_vials": False
+                }
             }
         }
     },
-    "statue_vials": {#leads to endings
+    "statue_vials": {  # leads to endings
         "dialogue": "You approach the statue holding the vials...",
         "choices": {
             "option_one": {
                 "Text": "Pour into statues hands...",
                 "id": 1,
                 "follow_up_text": "You pour the vials into the statues hands one at a time...",
-                "next_checkpoint": "vessel_ending"
+                "next_checkpoint": "vessel_ending",
+                "checkpoint_scene": "center"
             },
             "option_two": {
                 "Text": "Pour into the fountain...",
                 "id": 2,
                 "follow_up_text": "You pour the vials into the fountain one at a time...",
-                "next_checkpoint": "cleansed_ending"
+                "next_checkpoint": "cleansed_ending",
+                "checkpoint_scene": "center"
             }
         }
     },
-    #endings
+    # endings
     "cleansed_ending": {
         "dialogue": "The water drains from the fountain slowly, then cracks open, revealing a spiraling staircase. You descend "
                     "and are placed in a sewer, a sign reads city with an arrow. You follow it. Youve escaped the village",
@@ -164,22 +245,21 @@ center_scene_dict = {
 # fog density is conditional
 swamp_scene_dict = {
     "intro": {
-        "dialogue": {  # or later on, change follow-up text to feel dynamic
-            "from_church": "You decide to take a left and come up on a open swampy area",
-            "from_farm": "You decide to take a right and come up on a open swampy area"
-        },
+        "dialogue": "After awhile, you come up on a open swampy area",
         "choices": {
             "option_one": {
                 "Text": "walk into the swamp area",
                 "id": 1,
                 "follow_up_text": "Its just a swamp...",
-                "next_checkpoint": "start_position"
+                "next_checkpoint": "start_position",
+                "checkpoint_scene": "swamp"
             },
             "option_two": {
                 "Text": "turn around",
                 "id": 2,
                 "follow_up_text": "Dont like the look of this place, better go...",
-                "next_checkpoint": "swamp_crossroads"
+                "next_checkpoint": "swamp_crossroads",
+                "checkpoint_scene": "swamp"
             }
         }
     },
@@ -191,14 +271,16 @@ swamp_scene_dict = {
                 "option_one": {
                     "Text": "Walk aimlessly",
                     "id": 1,
-                    "follow_up_text": "Despite the alarming silence around this church you decide to walk in the door",
-                    "next_checkpoint": "inside_swamp"
+                    "follow_up_text": "Despite the alarming silence around this swamp you decide to continue...",
+                    "next_checkpoint": "inside_swamp",
+                    "checkpoint_scene": "swamp"
                 },
                 "option_two": {
                     "Text": "Turn and Leave",
                     "id": 2,
                     "follow_up_text": "Not worth getting lost in here...",
-                    "next_checkpoint": "swamp_crossroads"
+                    "next_checkpoint": "swamp_crossroads",
+                    "checkpoint_scene": "swamp"
                 }
             }
         },
@@ -209,13 +291,15 @@ swamp_scene_dict = {
                     "Text": "Continue Walking",
                     "id": 1,
                     "follow_up_text": "Its justa little fog, its not like your blind",
-                    "next_checkpoint": "inside_swamp"
+                    "next_checkpoint": "inside_swamp",
+                    "checkpoint_scene": "swamp"
                 },
                 "option_two": {
                     "Text": "Turn and Leave",
                     "id": 2,
                     "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
-                    "next_checkpoint": "swamp_crossroads"
+                    "next_checkpoint": "swamp_crossroads",
+                    "checkpoint_scene": "swamp"
                 }
             }
         },
@@ -226,13 +310,15 @@ swamp_scene_dict = {
                     "Text": "keep walking",
                     "id": 1,
                     "follow_up_text": "you walk towards the stone structure...",
-                    "next_checkpoint": "inside_swamp"
+                    "next_checkpoint": "inside_swamp",
+                    "checkpoint_scene": "swamp"
                 },
                 "option_two": {
                     "Text": "Turn and Leave",
                     "id": 2,
                     "follow_up_text": "Something about the energy here isn't right, you walk away...",
-                    "next_checkpoint": "swamp_crossroads"
+                    "next_checkpoint": "swamp_crossroads",
+                    "checkpoint_scene": "swamp"
                 }
             }
         }
@@ -246,13 +332,15 @@ swamp_scene_dict = {
                     "Text": "approach the cube",
                     "id": 1,
                     "follow_up_text": "The cube is small and metallic, it flashes with a bright light...",
-                    "next_checkpoint": "intuition_test"
+                    "next_checkpoint": "intuition_test",
+                    "checkpoint_scene": "swamp"
                 },
                 "option_two": {
                     "Text": "Turn and Leave",
                     "id": 2,
                     "follow_up_text": "This is too weird, time to go...",
-                    "next_checkpoint": "swamp_crossroads"
+                    "next_checkpoint": "swamp_crossroads",
+                    "checkpoint_scene": "swamp"
                 }
             }
         },
@@ -263,19 +351,26 @@ swamp_scene_dict = {
                     "Text": "approach the metal cube",
                     "id": 1,
                     "follow_up_text": "Something special enough to be on a pedestal is worth taking a look at",
-                    "next_checkpoint": "intuition_test"
+                    "next_checkpoint": "intuition_test",
+                    "checkpoint_scene": "swamp"
                 },
                 "option_two": {
                     "Text": "Look around",
                     "id": 2,
                     "follow_up_text": "Maybe you should check the surrounding area before...",
-                    "next_checkpoint": "swamp_key_items"
+                    "next_checkpoint": "swamp_key_items",
+                    "checkpoint_scene": "swamp",
+                    "locked_text": "You've already looked around. Theres nothing else worth getting",
+                    "explore_flag": {
+                        "has_snooped_swamp": False
+                    }
                 },
                 "option_three": {
                     "Text": "Turn and Leave",
                     "id": 3,
                     "follow_up_text": "Its not the fog that worries you, its what could be in the fog...",
-                    "next_checkpoint": "swamp_crossroads"
+                    "next_checkpoint": "swamp_crossroads",
+                    "checkpoint_scene": "swamp"
                 }
             }
         },
@@ -288,19 +383,26 @@ swamp_scene_dict = {
                     "Text": "Approach the cube",
                     "id": 1,
                     "follow_up_text": "This could be interesting....",
-                    "next_checkpoint": "intuition_test"
+                    "next_checkpoint": "intuition_test",
+                    "checkpoint_scene": "swamp"
                 },
                 "option_two": {
                     "Text": "look around",
                     "id": 2,
                     "follow_up_text": "There could be more here to discover...",
-                    "next_checkpoint": "swamp_key_items"
+                    "next_checkpoint": "swamp_key_items",
+                    "checkpoint_scene": "swamp",
+                    "locked_text": "You've already looked around. Theres nothing else worth getting",
+                    "explore_flag": {
+                        "has_snooped_swamp": False
+                    }
                 },
                 "option_three": {
                     "Text": "Turn and Leave",
                     "id": 3,
                     "follow_up_text": "Something about the energy here isn't right, you walk away...",
-                    "next_checkpoint": "swamp_crossroads"
+                    "next_checkpoint": "swamp_crossroads",
+                    "checkpoint_scene": "swamp"
                 }
             }
         }
@@ -313,58 +415,86 @@ swamp_scene_dict = {
                     "Text": "take the hammer",
                     "id": 1,
                     "follow_up_text": "Could be useful...",
-                    "next_checkpoint": "approach_cube"
+                    "condition": "has_snooped_swamp",
+                    "next_checkpoint": "approach_cube",
+                    "checkpoint_scene": "swamp",
+                    "inventory_need": {
+                        "has_hammer": False
+                    }
                 },
                 "option_two": {
                     "Text": "Leave the hammer",
                     "id": 2,
                     "follow_up_text": "its just a hammer",
-                    "next_checkpoint": "approach_cube"
+                    "next_checkpoint": "approach_cube",
+                    "checkpoint_scene": "swamp"
                 }
             }
         },
         "no_fog": {
-            "dialogue": "You look around the surrounding area. You find a hammer and a rusty key. You also find strange "
+            "dialogue": "You look around the surrounding area. You find a hammer and a rusty key. You also find strange"
                         "letters on the side of the structure, if only you could decipher them. ",
             "choices": {
                 "option_one": {
                     "Text": "take the hammer and key",
                     "id": 1,
+                    "condition": "has_snooped_swamp",
                     "follow_up_text": "This could be interesting....",
-                    "next_checkpoint": "approach_cube"
+                    "next_checkpoint": "swamp_key_items",
+                    "checkpoint_scene": "swamp",
+                    "locked_text": "You've already picked up these items...",
+                    "inventory_need": {
+                        "has_hammer": False,
+                        "has_key": False
+                    }
                 },
                 "option_two": {
-                    "Text": "Take the items and use decoder",
+                    "Text": "Use decoder",
                     "id": 2,
                     "condition": "has_decoder",
                     "locked_text": "How could you decode these...",
-                    "follow_up_text": "you pocket the hammer and key, then use your decoder to read the strange words. (placeholder)",
-                    "next_checkpoint": "approach_cube"
+                    "follow_up_text": "you pocket the hammer and key, then use your decoder to read the strange "
+                                      "words. (placeholder)",
+                    "next_checkpoint": "approach_cube",
+                    "checkpoint_scene": "swamp",
+                    "inventory_need": {
+                        "has_decoder": False
+                    }
                 },
                 "option_three": {
-                    "Text": "Leave the hammer and key",
+                    "Text": "Leave",
                     "id": 3,
                     "follow_up_text": "Its a hammer and a rusty key, what could you possibly need these for...",
-                    "next_checkpoint": "approach_cube"
+                    "next_checkpoint": "approach_cube",
+                    "checkpoint_scene": "swamp"
                 }
             }
         }
     },
-    #checkpoint template
+    # checkpoint template
     "swamp_crossroads": {  # crossroads to leave the scene *not finished*
         "dialogue": "Where do you want to go?",
         "choices": {
             "option_one": {
                 "Text": "Go right [Church]",
-                "id": 1
+                "id": 1,
+                "follow_up_text": "you start walking right...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "church"
             },
             "option_two": {
                 "Text": "Go left [Farm]",
-                "id": 2
+                "id": 2,
+                "follow_up_text": "you start walking left...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "farm"
             },
             "option_three": {
                 "Text": "Go forward [Village Center]",
-                "id": 3
+                "id": 3,
+                "follow_up_text": "you start walking forward",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "center"
             }
         }
     },
@@ -375,17 +505,19 @@ swamp_scene_dict = {
                 "Text": "approach",
                 "id": 1,
                 "follow_up_text": "Its just a funny looking cube...",
-                "next_checkpoint": "intuition_test"
+                "next_checkpoint": "intuition_test",
+                "checkpoint_scene": "swamp"
             },
             "option_two": {
                 "Text": "back away",
-                "id": 1,
+                "id": 2,
                 "follow_up_text": "The cube pulses with the light, it draws you close",
-                "next_checkpoint": "intuition_test"
+                "next_checkpoint": "intuition_test",
+                "checkpoint_scene": "swamp"
             }
         }
     },
-    #test
+    # test
     "intuition_test": {
         "question_1": {
             "dialogue": "The cube hums...",
@@ -455,12 +587,14 @@ swamp_scene_dict = {
             "option_one": {
                 "Text": "Stay on the ship",
                 "id": 1,
-                "next_checkpoint": "belong_ending"
+                "next_checkpoint": "belong_ending",
+                "checkpoint_scene": "swamp"
             },
             "option_two": {
                 "Text": "Ask to leave",
                 "id": 2,
-                "next_checkpoint": "intuition_ending"
+                "next_checkpoint": "intuition_ending",
+                "checkpoint_scene": "swamp"
             }
         }
     },
@@ -486,19 +620,23 @@ swamp_scene_dict = {
 # state of the church is conditional
 church_scene_dict = {
     "intro": {  # entered the scene
-        "dialogue": "You decide to take a left and see a church among the trees, do you approach or turn around?",
+        "dialogue": "After awhile, you see a church among the trees, do you approach or "
+                    "turn around?",
         "choices": {
             "option_one": {
                 "Text": "Go to the Church",
                 "id": 1,
                 "follow_up_text": "You decide to walk towards the church...",
-                "next_checkpoint": "start_position"
+                "next_checkpoint": "start_position",
+                "checkpoint_scene": "church"
             },
             "option_two": {
                 "Text": "Turn Around",
                 "id": 2,
-                "follow_up_text": "You decide to turn around walking back to where you came from. Theres a crossroads...",
-                "next_checkpoint": "church_crossroads"
+                "follow_up_text": "You decide to turn around walking back to where you came from. "
+                                  "Theres a crossroads...",
+                "next_checkpoint": "church_crossroads",
+                "checkpoint_scene": "church"
             }
         }
     },
@@ -511,13 +649,15 @@ church_scene_dict = {
                     "Text": "Go in",
                     "id": 1,
                     "follow_up_text": "Despite the alarming silence around this church you decide to walk in the door",
-                    "next_checkpoint": "inside_church"
+                    "next_checkpoint": "inside_church",
+                    "checkpoint_scene": "church"
                 },
                 "option_two": {
                     "Text": "Turn and Leave",
                     "id": 2,
                     "follow_up_text": "This church looks too creepy, best to walk away....",
-                    "next_checkpoint": "church_crossroads"
+                    "next_checkpoint": "church_crossroads",
+                    "checkpoint_scene": "church"
                 }
             }
         },
@@ -528,13 +668,15 @@ church_scene_dict = {
                     "Text": "Go in",
                     "id": 1,
                     "follow_up_text": "Its a church...how bad could it be",
-                    "next_checkpoint": "inside_church"
+                    "next_checkpoint": "inside_church",
+                    "checkpoint_scene": "church"
                 },
                 "option_two": {
                     "Text": "Turn and Leave",
                     "id": 2,
                     "follow_up_text": "Perhaps small lights and faint singing does not equate to safety, you walk away...",
-                    "next_checkpoint": "church_crossroads"
+                    "next_checkpoint": "church_crossroads",
+                    "checkpoint_scene": "church"
                 }
             }
         },
@@ -545,13 +687,15 @@ church_scene_dict = {
                     "Text": "Go in",
                     "id": 1,
                     "follow_up_text": "Im sure its just nerves, you head for the door...",
-                    "next_checkpoint": "inside_church"
+                    "next_checkpoint": "inside_church",
+                    "checkpoint_scene": "church"
                 },
                 "option_two": {
                     "Text": "Turn and Leave",
                     "id": 2,
                     "follow_up_text": "Something about the energy here isn't right, you walk away...",
-                    "next_checkpoint": "church_crossroads"
+                    "next_checkpoint": "church_crossroads",
+                    "checkpoint_scene": "church"
                 }
             }
         }
@@ -564,13 +708,19 @@ church_scene_dict = {
                     "Text": "Explore",
                     "id": 1,
                     "follow_up_text": "No harm in exploring a church, might find something useful",
-                    "next_checkpoint": "church_key_items"
+                    "next_checkpoint": "church_key_items",
+                    "checkpoint_scene": "church",
+                    "locked_text": "You've already explored the church, no need to explore again.",
+                    "explore_flag": {
+                        "has_snooped_church": False
+                    }
                 },
                 "option_two": {
                     "Text": "Leave",
                     "id": 2,
                     "follow_up_text": "Its a creepy empty church in the forest, you should not be in here.",
-                    "next_checkpoint": "church_crossroads"
+                    "next_checkpoint": "church_crossroads",
+                    "checkpoint_scene": "church"
                 }
             }
         },
@@ -582,21 +732,28 @@ church_scene_dict = {
                     "Text": "Approach the priest",
                     "id": 1,
                     "follow_up_text": "You slowly approach the priest, just as your about to tap his shoulder he turns...",
-                    "next_checkpoint": "faith_test"
+                    "next_checkpoint": "faith_test",
+                    "checkpoint_scene": "church"
                 },
                 "option_two": {
                     "Text": "Sit in the back pew",
                     "id": 2,
                     "follow_up_text": "he could be praying, maybe wait and let him finish...Once the priest finishes his song he turns and sees you sitting, he approaches...",
-                    "next_checkpoint": "faith_test"
+                    "next_checkpoint": "faith_test",
+                    "checkpoint_scene": "church",
                 },
                 "option_three": {
                     "Text": "kill the priest",
                     "id": 3,
-                    "condition": "has_weapon",
-                    "locked_text": "You reach for a weapon you don’t have.",
+                    "checkpoint_scene": "church",
                     "follow_up_text": "You quietly sneak up on the priest, and kill him",
-                    "next_checkpoint": "priest_death_ending"
+                    "next_checkpoint": "priest_death_ending",
+                    "locked_text": "You reach for a weapon you don’t have...",
+                    "inventory_need": {
+                        "has_knife": True,
+                        "has_hammer": True,
+                        "has_screwdriver": True
+                    },
                 },
             }
         },
@@ -607,19 +764,22 @@ church_scene_dict = {
                     "Text": "Yell hello down the stairs",
                     "id": 1,
                     "follow_up_text": "No harm in calling out...right?. A couple of voices can be heard before a man ascends up the stairs, he looks like a priest.",
-                    "next_checkpoint": "faith_test"
+                    "next_checkpoint": "faith_test",
+                    "checkpoint_scene": "church"
                 },
                 "option_two": {
                     "Text": "sit in the back pew and wait",
                     "id": 2,
                     "follow_up_text": "Someone is bound to come upstairs eventually...10 minutes later you hear someone ascend up the stairs, he looks like a priest. He walks towards you. ",
-                    "next_checkpoint": "faith_test"
+                    "next_checkpoint": "faith_test",
+                    "checkpoint_scene": "church"
                 },
                 "option_three": {
                     "Text": "go downstairs",
-                    "id": 2,
+                    "id": 3,
                     "follow_up_text": "its just a light....",
-                    "next_checkpoint": "church_basement"
+                    "next_checkpoint": "church_basement",
+                    "checkpoint_scene": "church"
                 }
             }
         }
@@ -629,16 +789,18 @@ church_scene_dict = {
         "dialogue": "Where do you want to go?",
         "choices": {
             "option_one": {
-                "Text": "Go right [Forest]",
-                "id": 1
+                "Text": "Go left [Swamp]",
+                "id": 1,
+                "follow_up_text": "you decide to walk left...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "swamp"
             },
             "option_two": {
-                "Text": "Go left [Swamp]",
-                "id": 2
-            },
-            "option_three": {
                 "Text": "Go forward [Village Center]",
-                "id": 3
+                "id": 2,
+                "follow_up_text": "you decide to walk forward...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "center"
             }
         }
     },
@@ -650,30 +812,36 @@ church_scene_dict = {
                 "Text": "yell for them to stop",
                 "id": 1,
                 "follow_up_text": "This is cruel, you scream at them, they realize your not one of them...better run",
-                "next_checkpoint": "altar_ending"
+                "next_checkpoint": "altar_ending",
+                "checkpoint_scene": "church"
             },
             "option_two": {
                 "Text": "sneak back up the stairs",
                 "id": 2,
-                "follow_up_text": "your not supposed to see this, you quickly and silently go back up the stairs",
-                "next_checkpoint": "inside_church"
+                "follow_up_text": "your not supposed to see this, you attempt to quickly and silently go back up the stairs...",
+                "next_checkpoint": "basement_ritual",
+                "checkpoint_scene": "church"
             },
             "option_three": {
                 "Text": "stand there in shock",
                 "id": 3,
                 "follow_up_text": "What did you just stumble upon?",
-                "next_checkpoint": "basement_ritual"
+                "next_checkpoint": "basement_ritual",
+                "checkpoint_scene": "church"
             },
             "option_four": {  # lore item
                 "Text": "wear the farmhouse mask",
-                "id": 3,
-                "condition": "has_mask",
+                "id": 4,
                 "locked_text": "if only you could blend in...",
                 "follow_up_text": "You place the mask on that you got from the farmhouse. The cloaked figures turn to face "
-                                  "you, acknowledge you, then direct their attention back to the man on the table ",
-                "additional_dialogue": "The cloaked figures continue their barbaric branding, you inch closer to see what it is theyre branding on his skin. "
-                                       "When you get close enough you see strange symbols, you can make out one though, a cube.",
-                "next_checkpoint": "basement_ritual"
+                                  "you, acknowledge you, then direct their attention back to the man on the table. The cloaked figures continue their"
+                                  " barbaric branding, you inch closer to see what it is theyre branding on his skin. "
+                                  "When you get close enough you see strange symbols, you can make out one though, a cube. ",
+                "next_checkpoint": "basement_ritual",
+                "checkpoint_scene": "church",
+                "inventory_need": {
+                    "has_mask": True
+                }
             }
         }
     },
@@ -684,19 +852,22 @@ church_scene_dict = {
                 "Text": "apologize",
                 "id": 1,
                 "follow_up_text": "One of the figures approaches. they remove their mask and robe and lead you back up the stairs",
-                "next_checkpoint": "faith_test"
+                "next_checkpoint": "faith_test",
+                "checkpoint_scene": "church"
             },
             "option_two": {
                 "Text": "'i dont want any trouble'",
                 "id": 2,
                 "follow_up_text": "One of the figures approaches. they remove their mask and robe and lead you back up the stairs",
-                "next_checkpoint": "faith_test"
+                "next_checkpoint": "faith_test",
+                "checkpoint_scene": "church"
             },
             "option_three": {
                 "Text": "run",
                 "id": 3,
                 "follow_up_text": "You dont plan on sticking around",
-                "next_checkpoint": "altar_ending"
+                "next_checkpoint": "altar_ending",
+                "checkpoint_scene": "church"
             }
         }
     },
@@ -707,17 +878,24 @@ church_scene_dict = {
                 "Text": "take the bible and paper",
                 "id": 1,
                 "follow_up_text": "You take the items, no use in them collecting dust here",
-                "next_checkpoint": "church_crossroads"
+                "locked_text": "You have already picked up these items",
+                "next_checkpoint": "church_key_items",
+                "checkpoint_scene": "church",
+                "inventory_need": {
+                    "has_bible": False,
+                    "has_decoder": False
+                }
             },
             "option_two": {
-                "Text": "leave the items",
+                "Text": "leave",
                 "id": 2,
                 "follow_up_text": "whatever god is worshipped in here might not like us stealing, you leave the items",
-                "next_checkpoint": "church_crossroads"
+                "next_checkpoint": "church_crossroads",
+                "checkpoint_scene": "church"
             }
         }
     },
-    #test
+    # test
     "faith_test": {
         "question_1": {
             "dialogue": "The priest greets you with a warm smile. 'What is your name child?'",
@@ -887,19 +1065,23 @@ church_scene_dict = {
 # farmer location is conditional
 farm_scene_dict = {
     "intro": {  # entered the scene
-        "dialogue": "You decide to take a right and see a farm at the bottom of a hill in the distance, do you approach or turn around?",
+        "dialogue": "After awhile, you see a farm at the bottom of a hill in the distance, do you "
+                    "approach or turn around?",
         "choices": {
             "option_one": {
                 "Text": "Go to the Farm",
                 "id": 1,
                 "follow_up_text": "You decide to walk towards the farm...",
-                "next_checkpoint": "start_position"
+                "next_checkpoint": "start_position",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "Turn Around",
                 "id": 2,
-                "follow_up_text": "You decide to turn around walking back to where you came from. Theres a crossroads...",
-                "next_checkpoint": "farm_crossroads"
+                "follow_up_text": "You decide to turn around walking back to where you came from. "
+                                  "Theres a crossroads...",
+                "next_checkpoint": "farm_crossroads",
+                "checkpoint_scene": "farm"
             }
         }
     },
@@ -922,13 +1104,15 @@ farm_scene_dict = {
                 "Text": "Walk to the Farmhouse",
                 "id": 1,
                 "follow_up_text": "You start making your way to the farmhouse...",
-                "next_checkpoint": "choose_farmhouse"
+                "next_checkpoint": "choose_farmhouse",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "Walk to the Barn",
                 "id": 2,
                 "follow_up_text": "You start making your way to the barn...",
-                "next_checkpoint": "choose_barn"
+                "next_checkpoint": "choose_barn",
+                "checkpoint_scene": "farm"
             }
         }
     },
@@ -940,19 +1124,22 @@ farm_scene_dict = {
                     "Text": "Knock on the door",
                     "id": 1,
                     "follow_up_text": " After a couple minutes a man opens the door greeting you",
-                    "next_checkpoint": "meet_farmer"
+                    "next_checkpoint": "meet_farmer",
+                    "checkpoint_scene": "farm"
                 },
                 "option_two": {
                     "Text": "Bang on the door",
                     "id": 2,
                     "follow_up_text": "After a couple minutes a man swings the door open, visibly annoyed",
-                    "next_checkpoint": "meet_farmer"
+                    "next_checkpoint": "meet_farmer",
+                    "checkpoint_scene": "farm"
                 },
                 "option_three": {
                     "Text": "Turn around and leave",
                     "id": 3,
                     "follow_up_text": "You turn and leave, maybe best not to bother whoever that is...",
-                    "next_checkpoint": "house_crossroads"
+                    "next_checkpoint": "house_crossroads",
+                    "checkpoint_scene": "farm"
                 }
             }
         },
@@ -963,13 +1150,15 @@ farm_scene_dict = {
                     "Text": "wave back",
                     "id": 1,
                     "follow_up_text": "The farmer smiles and stands up, beckoning you over",
-                    "next_checkpoint": "meet_farmer"
+                    "next_checkpoint": "meet_farmer",
+                    "checkpoint_scene": "farm"
                 },
                 "option_two": {
                     "Text": "walk up to him without saying a word",
                     "id": 2,
                     "follow_up_text": "You silently walk towards the farmer, he stands up and crosses his arms looking down at you from the porch.",
-                    "next_checkpoint": "meet_farmer"
+                    "next_checkpoint": "meet_farmer",
+                    "checkpoint_scene": "farm"
                 }
             }
         },
@@ -980,13 +1169,15 @@ farm_scene_dict = {
                     "Text": "go in",
                     "id": 1,
                     "follow_up_text": "You knock on the door and theres no answer, you open it slowly....",
-                    "next_checkpoint": "snoop_house"
+                    "next_checkpoint": "snoop_house",
+                    "checkpoint_scene": "farm",
                 },
                 "option_two": {
                     "Text": "Turn around",
                     "id": 2,
                     "follow_up_text": "You knock but theres no answer. No use in snooping, you turn and walk away.",
-                    "next_checkpoint": "house_crossroads"
+                    "next_checkpoint": "house_crossroads",
+                    "checkpoint_scene": "farm"
                 },
             }
         }
@@ -999,13 +1190,15 @@ farm_scene_dict = {
                     "Text": "go in",
                     "id": 1,
                     "follow_up_text": "You call out, but theres no answer. You walk in slowly...",
-                    "next_checkpoint": "snoop_barn"
+                    "next_checkpoint": "snoop_barn",
+                    "checkpoint_scene": "farm"
                 },
                 "option_two": {
                     "Text": "turn around and leave",
                     "id": 2,
                     "follow_up_text": "No one is here, no use in snooping.",
-                    "next_checkpoint": "barn_crossroads"
+                    "next_checkpoint": "barn_crossroads",
+                    "checkpoint_scene": "farm"
                 }
             }
         },
@@ -1016,13 +1209,15 @@ farm_scene_dict = {
                     "Text": "Walk to the farmhouse",
                     "id": 1,
                     "follow_up_text": "You turn and make your way to the farmhouse, the farmer stands at the end of the porch for your arrival",
-                    "next_checkpoint": "meet_farmer"
+                    "next_checkpoint": "meet_farmer",
+                    "checkpoint_scene": "farm"
                 },
                 "option_two": {
                     "Text": "ignore him and keep walking to the barn",
                     "id": 2,
                     "follow_up_text": "You keep walking to the barn, you see in the corner of your eye, the farmer getting up and making his way to you.",
-                    "next_checkpoint": "butcher_ending"  # death
+                    "next_checkpoint": "butcher_ending",
+                    "checkpoint_scene": "farm"
                 }
             }
         },
@@ -1033,13 +1228,15 @@ farm_scene_dict = {
                     "Text": "back away slowly",
                     "id": 1,
                     "follow_up_text": "The man looks up at you, suspiciously",
-                    "next_checkpoint": "meet_farmer"
+                    "next_checkpoint": "meet_farmer",
+                    "checkpoint_scene": "farm"
                 },
                 "option_two": {
                     "Text": "knock on the barn door",
                     "id": 2,
                     "follow_up_text": "The farmer looks up at you slightly confused, waiting...",
-                    "next_checkpoint": "meet_farmer"
+                    "next_checkpoint": "meet_farmer",
+                    "checkpoint_scene": "farm"
                 },
             }
         }
@@ -1052,14 +1249,19 @@ farm_scene_dict = {
                 "Text": "leave",
                 "id": 1,
                 "follow_up_text": "Doesnt look like anything worth looking at",
-                "next_checkpoint": "house_crossroads"
+                "next_checkpoint": "house_crossroads",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "explore",
                 "id": 2,
                 "follow_up_text": "You walk around the house, looking at everything",
-                "condition": "has_snooped_house",  # needs to be false to snoop (avoid dupe items)
-                "next_checkpoint": "house_key_items"
+                "next_checkpoint": "house_key_items",
+                "checkpoint_scene": "farm",
+                "locked_text": "Youve already explored this area",
+                "explore_flag": {
+                    "has_snooped_house": False
+                }
             }
         }
     },
@@ -1070,14 +1272,19 @@ farm_scene_dict = {
                 "Text": "leave",
                 "id": 1,
                 "follow_up_text": "Doesnt look like anything worth looking at",
-                "next_checkpoint": "barn_crossroads"
+                "next_checkpoint": "barn_crossroads",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "explore",
                 "id": 2,
                 "follow_up_text": "You walk around the barn, looking at everything",
-                "condition": "has_snooped_barn",  # needs to be false to snoop (avoid dupe items)
-                "next_checkpoint": "barn_key_items"
+                "next_checkpoint": "barn_key_items",
+                "checkpoint_scene": "farm",
+                "locked_text": "Youve already explored this area",
+                "explore_flag": {
+                    "has_snooped_barn": False
+                }
             }
         }
     },
@@ -1088,13 +1295,20 @@ farm_scene_dict = {
                 "Text": "leave the items",
                 "id": 1,
                 "follow_up_text": "you leave the items, theyre not yours to take.",
-                "next_checkpoint": "barn_crossroads"
+                "next_checkpoint": "barn_crossroads",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "take the items",
                 "id": 2,
                 "follow_up_text": "you take the items, finders keepers.",
-                "next_checkpoint": "barn_crossroads"
+                "next_checkpoint": "barn_crossroads",
+                "checkpoint_scene": "farm",
+                "locked_text": "You have already picked up these items",
+                "inventory_need": {
+                    "has_mask": False,
+                    "has_screwdriver": False
+                }
             }
         }
     },
@@ -1105,13 +1319,20 @@ farm_scene_dict = {
                 "Text": "leave the items",
                 "id": 1,
                 "follow_up_text": "you leave the items, theyre not yours to take.",
-                "next_checkpoint": "house_crossroads"
+                "next_checkpoint": "house_crossroads",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "take the items",
                 "id": 2,
                 "follow_up_text": "you take the items, finders keepers.",
-                "next_checkpoint": "house_crossroads"
+                "next_checkpoint": "house_crossroads",
+                "checkpoint_scene": "farm",
+                "locked_text": "You have already picked up these items",
+                "inventory_need": {
+                    "has_letter": False,
+                    "has_knife": False
+                }
             }
         }
     },
@@ -1121,15 +1342,17 @@ farm_scene_dict = {
         "choices": {
             "option_one": {
                 "Text": "Go right [Swamp]",
-                "id": 1
+                "id": 1,
+                "follow_up_text": "you start walking right...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "swamp"
             },
             "option_two": {
-                "Text": "Go left [Forest]",
-                "id": 2
-            },
-            "option_three": {
                 "Text": "Go forward [Village Center]",
-                "id": 3
+                "id": 2,
+                "follow_up_text": "you start walking forward...",
+                "next_checkpoint": "intro",
+                "checkpoint_scene": "center"
             }
         }
     },
@@ -1140,13 +1363,15 @@ farm_scene_dict = {
                 "Text": "Go to the crossroads",
                 "id": 1,
                 "follow_up_text": "You turn around and walk back up the hill to the crossroads...",
-                "next_checkpoint": "farm_crossroads"
+                "next_checkpoint": "farm_crossroads",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "Go to barn",
                 "id": 2,
                 "follow_up_text": "You turn and walk towards the barn...",
-                "next_checkpoint": "choose_barn"
+                "next_checkpoint": "choose_barn",
+                "checkpoint_scene": "farm"
             }
         }
     },
@@ -1157,36 +1382,43 @@ farm_scene_dict = {
                 "Text": "Go to the crossroads",
                 "id": 1,
                 "follow_up_text": "You turn around and walk back up the hill to the crossroads...",
-                "next_checkpoint": "farm_crossroads"
+                "next_checkpoint": "farm_crossroads",
+                "checkpoint_scene": "farm"
             },
             "option_two": {
                 "Text": "Go to the farmhouse",
                 "id": 2,
                 "follow_up_text": "You turn and walk towards the house...",
-                "next_checkpoint": "choose_farmhouse"
+                "next_checkpoint": "choose_farmhouse",
+                "checkpoint_scene": "farm"
             }
         }
     },
-    #has no dialogue
-    "meet_farmer": {  # option to kill before test *not finished*
-        "dialogue": None,
+    "meet_farmer": {
+        "dialogue": 'The farmer stands there, waiting...',
         "choices": {
-            "option_kill": {
+            "option_one": {
                 "Text": "kill the farmer.",
                 "id": 1,
-                "condition": "has_weapon",
-                "locked_text": "You reach for a weapon you don’t have.",
-                "next_checkpoint": "text"  # ending
+                "locked_text": "You reach for a weapon you don’t have...",
+                "next_checkpoint": "defense_ending",
+                "checkpoint_scene": "farm",
+                "inventory_need": {
+                    "has_knife": True,
+                    "has_screwdriver": True,
+                    "has_hammer": True
+                }
             },
-            "option_talk": {
+            "option_two": {
                 "Text": "Greet him politely.",
                 "id": 2,
                 "follow_up_text": "You say hello to the farmer.The farmer smiles...",
-                "next_checkpoint": "trust_test"
+                "next_checkpoint": "trust_test",
+                "checkpoint_scene": "farm"
             }
         }
     },
-    #test
+    # test
     "trust_test": {
         "question_1": {
             "dialogue": "Howdy there stranger whats your name",
