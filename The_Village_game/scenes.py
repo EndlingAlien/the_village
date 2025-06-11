@@ -1508,7 +1508,7 @@ farm_scene_dict = {
                 "option_two": {
                     "Text": "remind him about helping you",
                     "id": 2,
-                    "follow_up_text": "The farmer takes another slow sip, staring you down. Y'know my grandpappi was a founder of this here town, respect outta be in order for you.",
+                    "follow_up_text": "The farmer takes another slow sip, staring you down. Y'know my great grandpappi was a founder of this here town, respect outta be in order for you.",
                     "next_checkpoint": "question_5"
                 },
             }
