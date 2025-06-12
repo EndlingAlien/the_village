@@ -47,11 +47,15 @@ will use explore_flags and inventory_need as "tags" for if you snooped (barn, fa
                 "checkpoint_scene": "name of scene this option leads to", -string
                 #all should have ^^^
                 Below is optional:
-                "locked_text": "What displays when you don't have item..." - string
-                "been_used": "for one use choices; locked text will be replace follow-up" -bool
-                "inventory_need": "what you need in your inventory to do this option", -dict
-                "explore_flag":"keep track of what the player has discovered", -dict
-                "locked": "won't display/cant do until a condition is met", -dict
+                "is_displayed": Can user see this as an option, -bool
+                "locked": { #"won't display/cant do until a condition is met" -dict
+                    "been_used": "for one use choices; locked text will replace follow-up" -bool
+                    "locked_text": "What displays when you don't meet condition" - string
+                    "locked_checkpoint": "checkpoint to load since this option is locked" - string
+                    "locked_scene": "scene to play since this option is locked"  - string
+                    "inventory_need": "what you need in your inventory to do this option", -dict
+                    "explore_flag":"keep track of what the player has discovered", -dict
+                }, 
                 "ending_key": "the key used for keep track of what endings have been unlocked"
             }
         }
@@ -1312,10 +1316,15 @@ farm_scene_dict = {
                 "follow_up_text": "You walk around the house, looking at everything",
                 "next_checkpoint": "house_key_items",
                 "checkpoint_scene": "farm",
-                "locked_text": "Youve already explored this area",
-                "explore_flag": {
-                    "has_snooped_house": False
-                }
+                "locke": {
+                    "been_used": False,
+                    "locked_text": "Youve already explored this area",
+                    "locked_checkpoint": "snoop_house",
+                    "locked_scene": "farm",
+                    "explore_flag": {
+                        "has_snooped_house": False
+                    }
+                },
             }
         }
     },
