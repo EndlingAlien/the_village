@@ -70,8 +70,8 @@ faith_ending - church
 defense_ending, farmer_death_ending, trust_ending - farm
 '''
 
-# TODO After player has explored ares (snoop_barn) add a has_been tag, ex: has_been: has_snooped_barn
-# function will check if scene_dict[key] == player_stats[explore_flags[key]] *in depth notes in notebook
+# TODO: !!!!! BIG TODO !!!!
+#  Go through all scenes and fix tags (been using: snoop_house & house_key_items for testing)
 
 start_scene_dict = {
     "intro": {
@@ -1316,9 +1316,8 @@ farm_scene_dict = {
                 "follow_up_text": "You walk around the house, looking at everything",
                 "next_checkpoint": "house_key_items",
                 "checkpoint_scene": "farm",
-                "locke": {
-                    "been_used": False,
-                    "locked_text": "Youve already explored this area",
+                "locked": {
+                    "locked_text": "You've already explored this area",
                     "locked_checkpoint": "snoop_house",
                     "locked_scene": "farm",
                     "explore_flag": {
@@ -1391,11 +1390,16 @@ farm_scene_dict = {
                 "follow_up_text": "you take the items, finders keepers.",
                 "next_checkpoint": "house_crossroads",
                 "checkpoint_scene": "farm",
-                "locked_text": "You have already picked up these items",
-                "inventory_need": {
-                    "has_letter": False,
-                    "has_knife": False
-                }
+                "has_been": "has_snooped_barn",
+                "locked": {
+                    "locked_text": "You have already picked up these items",
+                    "locked_checkpoint": "house_key_items",
+                    "locked_scene": "farm",
+                    "inventory_need": {
+                        "letter": False,
+                        "knife": False
+                    }
+                },
             }
         }
     },

@@ -90,15 +90,62 @@ test_answers_dict = {
     },
 
 }
+# these get added to inventory in key item scenes
+key_items = {
+    "decoder": {
+        "desc": "a paper you found at the church, it has a table showing how to decode symbols",
+        "type": "lore",
+        "effect": "You might be able to use this to read unknown markings"
+    },
+    "mask": {
+        "desc": "a creepy mask you found in the barn of the farm",
+        "type": "tool",
+        "effect": "Wearing it might let you blend in..."
+    },
+    "bible": {
+        "desc": "A bible from the church, its covered in pale yellow leather.",
+        "type": "lore",
+        "effect": "contains information pertaining to this village"
+    },
+    "letter": {
+        "desc": "A letter from the farmhouse",
+        "type": "lore",
+        "effect": "it reads: 'Father micheal requests your presence at 9pm sharp for preperation of the chosen' "
+    },
+    "hammer": {
+        "desc": "A hammer you found at the swamp, its rusty.",
+        "type": "tool",
+        "effect": "Not just a tool..."
+    },
+    "key": {
+        "desc": "A small rusty key from the swamp, hidden in the mud.",
+        "type": "tool",
+        "effect": "What could this possibly unlock?"
+    },
+    "screwdriver": {
+        "desc": "Surprisingly shiny, as if its never been used",
+        "type": "tool",
+        "effect": "Could be useful..."
+    },
+    "knife": {
+        "desc": "A knife from the farmhouse",
+        "type": "tool",
+        "effect": "Its been used...a lot."
+    }
+}
 # Checks in load_info if checkpoint_name is a test
 test_checkpoint_names = ['trust_test', 'faith_test', 'intuition_test']
 
 
 # endregion
 
-# TODO: keep track of: what choices theyve made (done for tests)
+# TODO: keep track of: what choices theyve made (-done for everything) *This will go in final_stats*
 # TODO: Implement persistent flags and save system to prevent repeated ending dialogue on reload
+#  ^^^^^^(cant fully test until, scenes.py dict tags are updated [pretty sure its fixed now])
 
+# TODO: Remember: Ending_Key in scene_dicts used for ending_catalogue at player death
+#  to see what they got/achieved(exception:deaths that still let you continue the game
+#  Menu should let you read what full desc in final version
 
 # region Functions
 def initialize_game_conditions(cond_dict):
@@ -309,33 +356,45 @@ def load_ending(scene, checkpoint_key):
 # load_info(farm_scene, 'farm', 'intro')
 
 # __________________________TESTING AREA________________________________
+# TODO: Get started on sqLite db for save mech
 
-# these get added to inventory in key item scenes
-key_items = {
-    "mask": {
-        "desc": "A creepy mask you found in the barn at the farm"
-    }
-}
+
 
 player_stats = {
-    "explore_flag": {
-        "has_snooped_house": True
+    "explore_flag": {  # all start as False, game changes them to True
+        "has_snooped_house": False,
+        "has_snooped_barn": False,
+        "has_snooped_church": False,
+        "has_snooped_swamp": False,
+        "has_all_vials": False
     },
-    "inventory": {
-        "mask"
+    "inventory": {  # Needs to be empty when game starts /// Below is for testing
+        "letter": "hello",
+        "knife": "hello"
+    },
+    "choices": {  # all will stay as None, final check will ask: if choices[key] =! None -> save to db
+        "vials_choice": None,
+        "cube_choice": None,
+        "curious_choice": None,
+        "basement_choice": None,
+        "basement_choice_two": None,
+        "start_choice": None,
+        "knock_choice": None,
+        "meet_choice": None,
     }
 }
 
+final_stats = {}
 
-#future load info
-#need to break this down at some point, its huge
-def test_func(scene, scene_name, checkpoint_key):
+#backup of test_func while messing around adding more checks
+def test_func_backup(scene, scene_name, checkpoint_key):
     """
     In charge of loading the correct dialogue and options from checkpoint keyword
     :param scene: scene dictionary to search within
     :param scene_name: the name of scene to search
     :param checkpoint_key: name of key in scene dictionary
     """
+    # region Get initial info
     current_cond = test_dict.get(scene_name, None)
     checkpoint_data = scene.get(checkpoint_key, {})
 
@@ -362,7 +421,7 @@ def test_func(scene, scene_name, checkpoint_key):
         # check if the option can be displayed
         if choices[key].get('is_displayed', True):
             print(f"{choices[key]['id']}: {choices[key]['Text']}")
-
+    # endregion
 
     # Loop until valid input is received
     valid_input = False
@@ -371,96 +430,69 @@ def test_func(scene, scene_name, checkpoint_key):
             x = int(input("Choose an option: "))
             for main_key in choices:
                 if x == choices[main_key]['id']:
-                    # check if choice contains locked key
                     if 'locked' in choices[main_key]:
                         locked_info = choices[main_key]['locked']
-                        # check if the option has been used
-                        if locked_info['been_used']:
-                            print('has been used')  # for testing
-                            locked = choices[main_key].get('locked')
-                            text = locked['locked_text']
-                            next_cp = locked['locked_checkpoint']
-                            next_scene = locked['locked_scene']
+                        allow_progress = False  # Assume blocked
+
+                        # region Key Checks
+                        # 1. Check if been used (hard lock override)
+                        if locked_info.get('been_used', False):
+                            print('has been used')
+                            allow_progress = False  # force block
+
+                        # 2. Check explore_flag
+                        if 'explore_flag' in locked_info:
+                            print('has explore tag')
+                            flags = locked_info['explore_flag']
+                            for key in flags:
+                                if key in player_stats['explore_flag']:
+                                    if flags[key] == player_stats['explore_flag'][key]:
+                                        print('explore flag matches')
+                                        allow_progress = True
+                                    else:
+                                        print('explore flag mismatch')
+
+                        # 3. Check inventory_need
+                        if 'inventory_need' in locked_info:
+                            print('has inventory tag')
+                            need = locked_info['inventory_need']
+                            for key in need:
+                                if key in player_stats['inventory']:
+                                    print('found key in player inventory')
+                                    allow_progress = True
+                                else:
+                                    print(f'missing item: {key}')
+
+                        # endregion
+
+                        # FINAL DECISION
+                        if allow_progress:
+                            follow_text = choices[main_key].get('follow_up_text') or ''
+                            next_cp = choices[main_key]['next_checkpoint']
+                            next_scene = choices[main_key]['checkpoint_scene']
+                            scene_name = scene_dict[next_scene]
+                            print(follow_text)
+
+                            if next_cp in test_checkpoint_names:
+                                load_test(scene_name, next_cp)
+                            elif '_ending' in next_cp:
+                                load_ending(scene_name, next_cp)
+                            else:
+                                test_func(scene_name, next_scene, next_cp)
+                        else:
+                            print("locked info displayed")
+                            text = locked_info['locked_text']
+                            next_cp = locked_info['locked_checkpoint']
+                            next_scene = locked_info['locked_scene']
                             scene_name = scene_dict[next_scene]
                             print(text)
                             test_func(scene_name, next_scene, next_cp)
-                            valid_input = True
-                            break
-                        else:
-                            # check if choice contains an explore flag
-                            if 'explore_flag' in locked_info:
-                                print('has explore tag')
-                                flags = locked_info['explore_flag']
-                                for key in flags:
-                                    # Check if key exists in player stats
-                                    if key in player_stats['explore_flag']:
-                                        # Check if values match, yes, player can go on
-                                        if flags[key] == player_stats['explore_flag'][key]:
-                                            print('values match')
-                                            follow_text = choices[main_key].get('follow_up_text') or ''
-                                            next_cp = choices[main_key]['next_checkpoint']
-                                            next_scene = choices[main_key]['checkpoint_scene']
-                                            scene_name = scene_dict[next_scene]
-                                            print(follow_text)
-                                            # checks if next checkpoint is a test
-                                            if next_cp in test_checkpoint_names:
-                                                load_test(scene_name, next_cp)
-                                            # checks if next ceckpoint is an ending
-                                            elif '_ending' in next_cp:
-                                                load_ending(scene_name, next_cp)
-                                            # continue game
-                                            else:
-                                                test_func(scene_name, next_scene, next_cp)
-                                            valid_input = True
-                                            break  # exit for-loop
-                                        # If values dont match
-                                        else:
-                                            print('values dont match, locked info displayed')
-                                            locked = choices[main_key].get('locked')
-                                            text = locked['locked_text']
-                                            next_cp = locked['locked_checkpoint']
-                                            next_scene = locked['locked_scene']
-                                            scene_name = scene_dict[next_scene]
-                                            print(text)
-                                            test_func(scene_name, next_scene, next_cp)
-                                            valid_input = True
-                                            break  # exit for-loop
-                            elif 'inventory_need' in locked_info:
-                                print('has inventory tag')
-                                need = locked_info['inventory_need']
-                                for key in need:
-                                    # Check if key exists in player stats
-                                    if key in player_stats['inventory']:
-                                        print('found key in player inventory')
-                                        follow_text = choices[main_key].get('follow_up_text') or ''
-                                        next_cp = choices[main_key]['next_checkpoint']
-                                        next_scene = choices[main_key]['checkpoint_scene']
-                                        scene_name = scene_dict[next_scene]
-                                        print(follow_text)
-                                        # checks if next checkpoint is a test
-                                        if next_cp in test_checkpoint_names:
-                                            load_test(scene_name, next_cp)
-                                        # checks if next checkpoint is an ending
-                                        elif '_ending' in next_cp:
-                                            load_ending(scene_name, next_cp)
-                                        # continue the game
-                                        else:
-                                            test_func(scene_name, next_scene, next_cp)
-                                        valid_input = True
-                                        break  # exit for-loop
-                                        # If values dont match
-                                    else:
-                                        print('you aint got what you need')
-                                        locked = choices[main_key].get('locked')
-                                        text = locked['locked_text']
-                                        next_cp = locked['locked_checkpoint']
-                                        next_scene = locked['locked_scene']
-                                        scene_name = scene_dict[next_scene]
-                                        print(text)
-                                        test_func(scene_name, next_scene, next_cp)
-                                        valid_input = True
-                                        break  # exit for-loop
+
+                        valid_input = True
+                        break  # break the for-loop
+
                     else:
+                        # No locked key, display the normal option
                         print('display normal shit')
                         follow_text = choices[main_key].get('follow_up_text') or ''
                         next_cp = choices[main_key]['next_checkpoint']
@@ -474,11 +506,174 @@ def test_func(scene, scene_name, checkpoint_key):
                         else:
                             test_func(scene_name, next_scene, next_cp)
                         valid_input = True
-                        break  # exit for-loop
+                        break
+
+            if not valid_input:
+                print("Invalid choice. Try again.")
+        except ValueError:
+            print("Please enter a number.")
+
+#TODO: Clean this before starting Save Mechs
+# future load info
+# need to break this down at some point, its huge
+def test_func(scene, scene_name, checkpoint_key):
+    """
+    In charge of loading the correct dialogue and options from checkpoint keyword
+    :param scene: scene dictionary to search within
+    :param scene_name: the name of scene to search
+    :param checkpoint_key: name of key in scene dictionary
+    """
+    # region Get initial info
+    current_cond = test_dict.get(scene_name, None)
+    checkpoint_data = scene.get(checkpoint_key, {})
+    global final_stats
+
+    # Determine if this checkpoint uses conditional branching
+    if current_cond and current_cond in checkpoint_data:
+        print('conditional\n')  # testing
+        active_block = checkpoint_data[current_cond]
+
+        # fallback to base choices if conditional has no choices
+        choices = active_block.get('choices')
+        if choices is None:
+            choices = checkpoint_data.get('choices', {})
+    else:
+        print('typical\n')  # testing
+        active_block = checkpoint_data
+        choices = active_block.get('choices', {})
+
+    # Get dialogue (fallback if None)
+    dialogue = active_block.get('dialogue') or ''
+    print(dialogue)
+
+    # Display choices
+    for key in choices:
+        # check if the option can be displayed
+        if choices[key].get('is_displayed', True):
+            print(f"{choices[key]['id']}: {choices[key]['Text']}")
+    # endregion
+
+    # Loop until valid input is received
+    valid_input = False
+    while not valid_input:
+        try:
+            x = int(input("Choose an option: "))
+            for main_key in choices:
+                if x == choices[main_key]['id']:
+                    if 'locked' in choices[main_key]:
+                        locked_info = choices[main_key]['locked']
+                        allow_progress = False  # Assume blocked
+
+                        # region Key Checks
+                        # 1. Check if been used (hard lock override)
+                        if locked_info.get('been_used', False):
+                            print('has been used')
+                            allow_progress = False  # force block
+
+                        # 2. Check explore_flag
+                        if 'explore_flag' in locked_info:
+                            print('has explore tag')
+                            flags = locked_info['explore_flag']
+                            for key in flags:
+                                if key in player_stats['explore_flag']:
+                                    if flags[key] == player_stats['explore_flag'][key]:
+                                        print('explore flag matches')
+                                        allow_progress = True
+                                    else:
+                                        print('explore flag mismatch')
+
+                        # 3. Check inventory_need
+                        if 'inventory_need' in locked_info:
+                            print('has inventory tag')
+                            need = locked_info['inventory_need']
+                            for key in need:
+                                if key in player_stats['inventory']:
+                                    print('found key in player inventory')
+                                    allow_progress = True
+                                else:
+                                    print(f'missing item: {key}')
+
+                        # endregion
+
+                        # FINAL DECISION
+                        if allow_progress:
+                            follow_text = choices[main_key].get('follow_up_text') or ''
+                            next_cp = choices[main_key]['next_checkpoint']
+                            next_scene = choices[main_key]['checkpoint_scene']
+                            scene_name = scene_dict[next_scene]
+                            print(follow_text)
+
+                            #region Second round of Key Checks
+                            # TODO: BELOW IMPORTANT [FOR FINAL ANALYSIS]
+                            #This changes player_stats explore flags
+                            if 'has_been' in choices[main_key]:
+                                if choices[main_key]['has_been'] in player_stats['explore_flag']:
+                                    player_flags = player_stats['explore_flag']
+                                    has_key = choices[main_key]['has_been']
+                                    player_stats['explore_flag'][has_key] = not player_flags[has_key]
+
+                            #this adds items to the player_stats inventory
+                            if 'inventory_need' in locked_info:
+                                print('has inventory tag 2.0')
+                                need = locked_info['inventory_need']
+                                for key in need:
+                                    player_stats['inventory'][key] = key_items[key]
+
+                            #adds decision tag to player_stats
+                            if 'tag' in active_block:
+                                tag = active_block['tag']
+                                player_stats['choices'][tag] = x
+                            #endregion
+
+                            if next_cp in test_checkpoint_names:
+                                load_test(scene_name, next_cp)
+                            elif '_ending' in next_cp:
+                                load_ending(scene_name, next_cp)
+                            else:
+                                # TODO: change after testing
+                                test_func(scene_name, next_scene, next_cp)
+                        else:
+                            print("locked info displayed")
+                            text = locked_info['locked_text']
+                            next_cp = locked_info['locked_checkpoint']
+                            next_scene = locked_info['locked_scene']
+                            scene_name = scene_dict[next_scene]
+                            print(text)
+                            # TODO: change after testing
+                            test_func(scene_name, next_scene, next_cp)
+                        valid_input = True
+                        break  # break the for-loop
+                    else:
+                        # No locked key, display the normal option
+                        print('display normal shit')
+                        follow_text = choices[main_key].get('follow_up_text') or ''
+                        next_cp = choices[main_key]['next_checkpoint']
+                        next_scene = choices[main_key]['checkpoint_scene']
+                        scene_name = scene_dict[next_scene]
+                        print(follow_text)
+
+                        # TODO: save to db either here or in possible death func
+                        # adds decision tag to player_stats
+                        if 'tag' in active_block:
+                            tag = active_block['tag']
+                            player_stats['choices'][tag] = x
+
+                        if next_cp in test_checkpoint_names:
+                            load_test(scene_name, next_cp)
+                        elif '_ending' in next_cp:
+                            load_ending(scene_name, next_cp)
+                        else:
+                            # TODO: change after testing
+                            test_func(scene_name, next_scene, next_cp)
+                        valid_input = True
+                        break
             if not valid_input:
                 print("Invalid choice. Try again.")
         except ValueError:
             print("Please enter a number.")
 
 
-test_func(farm_scene, 'farm', 'snoop_house')
+#test_func(farm_scene, 'farm', 'meet_farmer')
+test_func(start_scene, 'start', 'house_key_items')
+
+
