@@ -12,3 +12,7 @@ env/
 
 # System
 .DS_Store
+
+# Ignore the local SQLite database
+The_Village_game/*.db
+

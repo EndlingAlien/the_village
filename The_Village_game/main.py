@@ -2,6 +2,7 @@
 import scenes as sc
 import ending_catalogue as ec
 import random as r
+import analysis as a
 
 # region Variables
 
@@ -96,7 +97,6 @@ key_items = {
     "decoder": {
         "desc": "a paper you found at the church, it has a table showing how to decode symbols",
         "type": "lore",
-        "used": None,  # how many times you used the item
         "effect": "You might be able to use this to read unknown markings"
     },
     "mask": {
@@ -171,62 +171,7 @@ def initialize_game_conditions(cond_dict):
     return {con: r.choice(options) for con, options in condition_dict.items()}
 
 
-def load_info(scene, scene_name, checkpoint_key):
-    """
-    In charge of loading the correct dialogue and options from checkpoint keyword
-    :param scene: scene dictionary to search within
-    :param scene_name: the name of scene to search
-    :param checkpoint_key: name of key in scene dictionary
-    """
-    current_cond = test_dict.get(scene_name, None)
-    checkpoint_data = scene.get(checkpoint_key, {})
 
-    # Determine if this checkpoint uses conditional branching
-    if current_cond and current_cond in checkpoint_data:
-        print('conditional\n')  # testing
-        active_block = checkpoint_data[current_cond]
-
-        # fallback to base choices if conditional has no choices
-        choices = active_block.get('choices')
-        if choices is None:
-            choices = checkpoint_data.get('choices', {})
-    else:
-        print('typical\n')  # testing
-        active_block = checkpoint_data
-        choices = active_block.get('choices', {})
-
-    # Get dialogue (fallback if None)
-    dialogue = active_block.get('dialogue') or ''
-    print(dialogue)
-
-    # Display choices
-    for key in choices:
-        print(f"{choices[key]['id']}: {choices[key]['Text']}")
-
-    # Loop until valid input is received
-    valid_input = False
-    while not valid_input:
-        try:
-            x = int(input("Choose an option: "))
-            for key in choices:
-                if x == choices[key]['id']:
-                    follow_text = choices[key].get('follow_up_text') or ''
-                    next_cp = choices[key]['next_checkpoint']
-                    next_scene = choices[key]['checkpoint_scene']
-                    scene_name = scene_dict[next_scene]
-                    print(follow_text)
-                    if next_cp in test_checkpoint_names:
-                        load_test(scene_name, next_cp)
-                    elif '_ending' in next_cp:
-                        load_ending(scene_name, next_cp)
-                    else:
-                        load_info(scene_name, next_scene, next_cp)
-                    valid_input = True
-                    break  # exit for-loop
-            if not valid_input:
-                print("Invalid choice. Try again.")
-        except ValueError:
-            print("Please enter a number.")
 
 
 def load_test(scene, checkpoint_key):
@@ -295,6 +240,7 @@ def calculate_trust_result(test_answers, test_choices):
     # make sure you hold onto the players answers for data analysis report
     trust_test_choices = test_choices
     final_stats['tests']['trust_test_choices'] = trust_test_choices
+    a.calc_trust_test_archetype(test_choices)
 
     correct = 0
     for key, answer in test_answers.items():
@@ -307,7 +253,7 @@ def calculate_trust_result(test_answers, test_choices):
         case _ if correct >= 7:
             load_ending(farm_scene, 'kindness_ending')
         case _ if correct < 7:
-            load_info(farm_scene, 'farm', 'fail_choice')
+            test_func(farm_scene, 'farm', 'fail_choice')
 
 
 def calculate_faith_result(test_answers, test_choices):
@@ -339,7 +285,7 @@ def calculate_intuition_result(test_answers, test_choices):
             break
     match score:
         case _ if score >= 8:
-            load_info(swamp_scene, 'swamp', 'make_choice')
+            test_func(swamp_scene, 'swamp', 'make_choice')
         case _ if score >= 5:
             load_ending(swamp_scene, 'probed_ending')
         case _ if score < 5:
@@ -358,13 +304,14 @@ def load_ending(scene, checkpoint_key):
         cp_name = active_block.get('checkpoint_scene')
         cp = active_block.get('next_checkpoint')
         end_key = active_block.get('ending_key')
-        print(dialogue)  # this is the follow-up text
+        print(dialogue)
         # add check for after killed farmer and priest and add key to player_stats
         # TODO: change to game_condition after testing
         test_dict[cp_name] = end_key
         player_stats['ending_key'][end_key] = ec.endings[end_key]
         scene = sc.return_scene(cp_name + '_scene_dict')
         scene['intro']['choices']['option_one']['next_checkpoint'] = 'after_test_start'
+        #for the vials
         if active_block.get('inventory_need'):
             for key in active_block['inventory_need']:
                 player_stats['inventory'][key] = key_items[key]
@@ -396,10 +343,11 @@ player_stats = {
         "curious_choice": None,
         "basement_door_choice": None,
         "basement_choice": None,
-        "basement_choice_two": None,
+        "basement_two_choice": None,
         "start_choice": None,
         "knock_choice": None,
         "meet_choice": None,
+        "break_choice": None
     },
     "ending_key": {
         # can hold ending_key to "stack" and 'bring back' to db

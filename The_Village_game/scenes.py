@@ -15,11 +15,11 @@ cube_choice - if you tried to back away from the cube, located in swamp_scene_di
 curious_choice - what ending you pick after passing intuition test, located in swamp_scene_dict["make_choice"]
 basement_door_choice - basement door is open, similar to kid marshmallow test, (wait, yell, go), located in church_scene_dict["inside_church"] (basement has to be open)
 basement_choice - when inside basement what you choose to do seeing the men, located in church_scene_dict["church_basement"]
-basement_choice_two - when inside basement what you choose to do after the men see you, located in church_scene_dict["basement_ritual"]
+basement_two_choice - when inside basement what you choose to do after the men see you, located in church_scene_dict["basement_ritual"]
 start_choice - where you start at the farm, barn or farmhouse, located in farm_scene_dict["start_position"]
 knock_choice - whether you knock or bang on the door, located in farm_scene_dict["choose_farmhouse"] (farmer needs to be inside the house)
 meet_choice - whether you choose to kill farmer before test or not, located in farm_scene_dict["meet_farmer"]
-take_a_break - how many breaks you take on the porch ,located in after_test_house['trust_pass']
+break_choice - if you take a break on the porch ,located in after_test_house['trust_pass']
 will use explore_flags and inventory_need as "tags" for if you snooped (barn, farmhouse, church)
 '''
 
@@ -1030,7 +1030,7 @@ church_scene_dict = {
         }
     },
     "basement_ritual": {
-        "tag": "basement_choice_two",
+        "tag": "basement_two_choice",
         "dialogue": "The cloaked figures stop what they're doing and look at each-other, whispering in a strange dialect before slowly turning towards you.",
         "choices": {
             "option_one": {
@@ -1992,7 +1992,7 @@ farm_scene_dict = {
             }
         },
         "trust_pass": {
-            "tag": "take_a_break",
+            "tag": "break_choice",
             "dialogue": "You walk back to the farmhouse. the farmer is sitting in his rocking chair, watching the trees.",
             "choices": {
                 "option_one": {
