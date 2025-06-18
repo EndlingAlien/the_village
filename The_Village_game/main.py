@@ -36,25 +36,6 @@ scene_dict = {
     "center": center_scene,
     "start": start_scene
 }
-# for later use in db
-ending_flags = {
-    "cleansed": False,
-    "vessel": False,
-    "rejected": False,
-    "probed": False,
-    "you_belong": False,
-    "intuition_pass": False,
-    "believer": False,
-    "faith_pass": False,
-    "heretic": False,
-    "priest_death": False,
-    "altar": False,
-    "butcher": False,
-    "kindness": False,
-    "self_defense": False,
-    "tainted_meat": False,
-    "trust_pass": False
-}
 # purely for making life easy in load_test
 questions = [
     "question_1",
@@ -235,7 +216,6 @@ def load_test(scene, checkpoint_key):
 
 
 # region Calculate Test Results
-# TODO: dialogue repeats for load_info call in all func endings
 def calculate_trust_result(test_answers, test_choices):
     # make sure you hold onto the players answers for data analysis report
     trust_test_choices = test_choices
@@ -329,10 +309,10 @@ def load_ending(scene, checkpoint_key):
 
 player_stats = {
     "explore_flag": {  # all start as False, game changes them to True
-        "has_snooped_house": False,
-        "has_snooped_barn": False,
-        "has_snooped_church": False,
-        "has_snooped_swamp": False,
+        "snooped_house": False,
+        "snooped_barn": False,
+        "snooped_church": False,
+        "snooped_swamp": False,
     },
     "inventory": {  # Needs to be empty when game starts /// Below is for testing
 

@@ -6,7 +6,7 @@
 # fog_density (heavy, light, none)
 
 # the inventory tags = lore item(has_decoder, has_mask, has_bible, has_letter) / usable item(has_hammer, has_key, has_screwdriver, has_knife)
-# the explored tags = has_snooped_house, has_snooped_barn, has_snooped_church, has_snooped_swamp
+# the explored tags = snooped_house, snooped_barn, snooped_church, snooped_swamp
 
 # the tags below for decisions
 '''
@@ -419,7 +419,7 @@ swamp_scene_dict = {
                         "locked_checkpoint": "inside_swamp",
                         "locked_scene": "swamp",
                         "explore_flag": {
-                            "has_snooped_swamp": False
+                            "snooped_swamp": False
                         }
                     },
                 },
@@ -455,7 +455,7 @@ swamp_scene_dict = {
                         "locked_checkpoint": "inside_swamp",
                         "locked_scene": "swamp",
                         "explore_flag": {
-                            "has_snooped_swamp": False
+                            "snooped_swamp": False
                         }
                     },
                 },
@@ -479,7 +479,7 @@ swamp_scene_dict = {
                     "follow_up_text": "Could be useful...",
                     "next_checkpoint": "approach_cube",
                     "checkpoint_scene": "swamp",
-                    "has_been": "has_snooped_swamp",
+                    "has_been": "snooped_swamp",
                     "locked": {
                         "locked_text": "You have already picked up these items",
                         "locked_checkpoint": "swamp_key_items",
@@ -508,7 +508,7 @@ swamp_scene_dict = {
                     "follow_up_text": "This could be interesting....",
                     "next_checkpoint": "swamp_key_items",
                     "checkpoint_scene": "swamp",
-                    "has_been": "has_snooped_swamp",
+                    "has_been": "snooped_swamp",
                     "locked": {
                         "locked_text": "You have already picked up these items",
                         "locked_checkpoint": "swamp_key_items",
@@ -526,7 +526,7 @@ swamp_scene_dict = {
                                       "words. (placeholder)",
                     "next_checkpoint": "approach_cube",
                     "checkpoint_scene": "swamp",
-                    "has_been": "has_snooped_swamp",
+                    "has_been": "snooped_swamp",
                     "locked": {
                         "locked_text": "How could you decode these...",
                         "locked_checkpoint": "swamp_key_items",
@@ -710,7 +710,7 @@ swamp_scene_dict = {
                     "locked_checkpoint": "after_test_swamp",
                     "locked_scene": "swamp",
                     "explore_flag": {
-                        "has_snooped_swamp": False
+                        "snooped_swamp": False
                     }
                 },
             },
@@ -733,7 +733,7 @@ swamp_scene_dict = {
                 "follow_up_text": "This could be interesting....",
                 "next_checkpoint": "after_test_key_items",
                 "checkpoint_scene": "swamp",
-                "has_been": "has_snooped_swamp",
+                "has_been": "snooped_swamp",
                 "locked": {
                     "locked_text": "You have already picked up these items",
                     "locked_checkpoint": "after_test_key_items",
@@ -751,7 +751,7 @@ swamp_scene_dict = {
                                   "words. (placeholder)",
                 "next_checkpoint": "after_test_key_items",
                 "checkpoint_scene": "swamp",
-                "has_been": "has_snooped_swamp",
+                "has_been": "snooped_swamp",
                 "locked": {
                     "locked_text": "How could you decode these...",
                     "locked_checkpoint": "after_test_key_items",
@@ -1077,7 +1077,7 @@ church_scene_dict = {
                     "locked_checkpoint": "snoop_church",
                     "locked_scene": "church",
                     "explore_flag": {
-                        "has_snooped_church": False
+                        "snooped_church": False
                     }
                 },
             }
@@ -1092,7 +1092,7 @@ church_scene_dict = {
                 "follow_up_text": "You take the items, no use in them collecting dust here",
                 "next_checkpoint": "church_crossroads",
                 "checkpoint_scene": "church",
-                "has_been": "has_snooped_church",
+                "has_been": "snooped_church",
                 "locked": {
                     "locked_text": "You have already picked up these items",
                     "locked_checkpoint": "church_key_items",
@@ -1292,7 +1292,7 @@ church_scene_dict = {
                     "locked_checkpoint": "after_test_church",
                     "locked_scene": "church",
                     "explore_flag": {
-                        "has_snooped_church": False
+                        "snooped_church": False
                     }
                 },
             },
@@ -1315,7 +1315,7 @@ church_scene_dict = {
                 "follow_up_text": "You take the items, no use in them collecting dust here",
                 "next_checkpoint": "church_crossroads",
                 "checkpoint_scene": "church",
-                "has_been": "has_snooped_church",
+                "has_been": "snooped_church",
                 "locked": {
                     "locked_text": "You have already picked up these items",
                     "locked_checkpoint": "after_test_key_items",
@@ -1569,7 +1569,7 @@ farm_scene_dict = {
                     "locked_checkpoint": "snoop_house",
                     "locked_scene": "farm",
                     "explore_flag": {
-                        "has_snooped_house": False
+                        "snooped_house": False
                     }
                 },
             }
@@ -1596,7 +1596,7 @@ farm_scene_dict = {
                     "locked_checkpoint": "snoop_barn",
                     "locked_scene": "farm",
                     "explore_flag": {
-                        "has_snooped_barn": False
+                        "snooped_barn": False
                     }
                 },
             }
@@ -1618,7 +1618,7 @@ farm_scene_dict = {
                 "follow_up_text": "you take the items, finders keepers.",
                 "next_checkpoint": "barn_crossroads",
                 "checkpoint_scene": "farm",
-                "has_been": "has_snooped_barn",
+                "has_been": "snooped_barn",
                 "locked": {
                     "locked_text": "You have already picked up these items",
                     "locked_checkpoint": "barn_key_items",
@@ -1647,7 +1647,7 @@ farm_scene_dict = {
                 "follow_up_text": "you take the items, finders keepers.",
                 "next_checkpoint": "house_crossroads",
                 "checkpoint_scene": "farm",
-                "has_been": "has_snooped_house",
+                "has_been": "snooped_house",
                 "locked": {
                     "locked_text": "You have already picked up these items",
                     "locked_checkpoint": "house_key_items",
@@ -2046,7 +2046,7 @@ farm_scene_dict = {
                         "locked_checkpoint": "after_test_barn",
                         "locked_scene": "farm",
                         "explore_flag": {
-                            "has_snooped_barn": False
+                            "snooped_barn": False
                         }
                     }
                 },
@@ -2073,7 +2073,7 @@ farm_scene_dict = {
                         "locked_checkpoint": "after_test_barn",
                         "locked_scene": "farm",
                         "explore_flag": {
-                            "has_snooped_barn": False
+                            "snooped_barn": False
                         }
                     }
                 },
@@ -2122,7 +2122,7 @@ farm_scene_dict = {
                 "follow_up_text": "you take the items, the farmer wont mind...",
                 "next_checkpoint": "after_test_barn_crossroads",
                 "checkpoint_scene": "farm",
-                "has_been": "has_snooped_barn",
+                "has_been": "snooped_barn",
                 "locked": {
                     "locked_text": "You have already picked up these items",
                     "locked_checkpoint": "after_test_key_items",

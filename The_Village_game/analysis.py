@@ -37,6 +37,7 @@ timid_arch = {
     "break_choice": 2
 }
 
+#TODO: choices_list for testing, use player_stats['choices']
 choices_list = {  # all will stay as None, final check will ask: if choices[key] =! None -> save to db
     "vials_choice": 1,
     "cube_choice": 1,
@@ -79,46 +80,48 @@ def calc_choice_archetype(choices):
 
     arch = Counter(archetype_dict).most_common()
     if arch[0][1] == arch[1][1] or arch[0][1] == arch[2][1]:
-        print('arch is incon')
-
-    print(archetype_dict)
+        return 'wild'
+    return arch[0][0]
 
 
 def calc_trust_test_archetype(num_of_correct):
     match num_of_correct:
         case 9:
-            print('Chosen material')
+            return 'chosen'
         case _ if num_of_correct >= 7:
-            print('just a person')
+            return 'average'
         case _ if num_of_correct < 7:
-            print('Disrespectful')
+            return 'disrespectful'
 
 
 def calc_faith_test_archetype(test_results):
     list_of_choices = list(test_results.values())
-    majority_answer = Counter(list_of_choices).most_common()[0][0]
-    if majority_answer[0][1] == majority_answer[1][1] and majority_answer[0][1] == majority_answer[2][1]:
-        print('unable to read')
-    match majority_answer[0][0]:
+    majority_answer = Counter(list_of_choices).most_common(3)
+    # Handle tiebreaker: all top three have same count
+    if len(majority_answer) >= 3 and majority_answer[0][1] == majority_answer[1][1] == majority_answer[2][1]:
+        return 'unreadable'
+
+    top_choice = majority_answer[0][0]
+
+    match top_choice:
         case 3:
-            print('you lost')
+            return 'lost'
         case 2:
-            print('your independent')
+            return "independent"
         case 1:
-            print('unbending')
+            return 'unbending'
 
 
 def calc_intuition_test_archetype(test_results):
     list_of_choices = list(test_results.values())
-    majority_answer = Counter(list_of_choices).most_common()
-    if majority_answer[0][1] == majority_answer[1][1] and majority_answer[0][1] == majority_answer[2][1]:
-        print('your cautious')
+    majority_answer = Counter(list_of_choices).most_common(3)
+    # Handle tiebreaker: all top three have same count
+    if len(majority_answer) >= 3 and majority_answer[0][1] == majority_answer[1][1] == majority_answer[2][1]:
+        return 'cautious'
     else:
-        match majority_answer[0][0]:
+        top_choice = majority_answer[0][0]
+        match top_choice:
             case 3:
-                print('you curious')
+                return 'curious'
             case 1:
-                print('your scared')
-
-
-calc_choice_archetype(choices_list)
+                return 'spineless'
