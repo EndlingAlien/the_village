@@ -1,10 +1,40 @@
-# This file holds all the endings of the game
+"""
+ending_catalogue.py desc:
 
+    This file contains all relevant data related to game endings.
+    Includes:
+        - Definitions for each ending (name, type, scene, summary, and description)
+        - A centralized dictionary for easy lookup and assignment
+"""
+
+
+
+# Definition of Ending keys
+"""
+ending_definition:
+    Required Keys (all endings must include these):
+    ----------------------------------------------
+    "name"        : The name/title of the ending. (string)
+
+    "scene"       : The name of the scene this ending belongs to. (string)
+
+    "type"        : The category or type of the ending (e.g., 'pass', 'fail', 'true', 'joke'). (string)
+
+    "summary"     : A short explanation of how the ending was triggered—summarizes the player's path. (string)
+
+    "description" : A written description of the ending itself (not the in-game dialogue, just the narrative overview). (string)
+"""
+
+
+
+# TODO: Clean/Polish summary and description after tkinter in use
+#how it will be organized in player personal db, maybe
 #type = survived, secret, good, test, failed, death
 
+# Dictionary to hold all ending info in game
 endings = {
 
-    # Center Endings
+    #region Center Endings
     "cleansed": {
         "name": "The Cleansed",
         "scene": "center",
@@ -26,6 +56,7 @@ endings = {
         "summary": "Gave up",
         "description": "The village was too much for you, your only option was to give in, so you did."
     },
+    #endregion
 
     #region Swamp Endings
     "rejected": {
