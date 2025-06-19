@@ -10,18 +10,12 @@ import scenes as sc
 import ending_catalogue as ec
 import random as r
 import analysis as a
+import game_db as db
 
 # TODO: Menu should let you read what full desc in final version [endings]
 
-# TODO: change test_dict instances to game_condition when done testing
-# game_condition = initialize_game_conditions(condition_dict)
-test_dict = {
-    "farm": 'farmer_in_barn',
-    "swamp": 'light_fog',
-    "church": 'basement_open'
-}
 # region Variables
-
+db_instance = db.MockDatabase()
 # region Scene Dictionaries
 
 # Each of these holds all checkpoint data for their respective areas
@@ -73,7 +67,7 @@ test_answers_dict = {
         0: "boring"  # 0 to 4 → failed/boring ending
     },
 }
-# TODO: When tkinter in use, polish up the values
+# TODO: When tkinter in use, polish up the values of this dict
 # Key items that are added to the player's inventory during the story
 key_items = {
     "decoder": {
@@ -137,7 +131,7 @@ key_items = {
 test_checkpoint_names = ['trust_test', 'faith_test', 'intuition_test']
 
 # Dictionary that holds all stats and game state for the player
-player_stats = {
+player_data = {
     "explore_flag": {
         "snooped_house": False,
         "snooped_barn": False,
@@ -157,20 +151,75 @@ player_stats = {
         "meet_choice": None,
         "break_choice": None
     },
-    "ending_key": {}
+    "ending_key": {},
+}
+test_data = {
+    "trust_answers": {},
+    "faith_answers": {},
+    "intuition_answers": {}
+}
+archetype_data = {
+        "trust_archetype": None,
+        "faith_archetype": None,
+        "intuition_archetype": None,
+        "choice_archetype": None,
+}
+cond_data = {
+        "farm": None,
+        "swamp": None,
+        "church": None
+}
+final_data = {
+    "cond_data": {},
+    "player_data": {},
+    "test_data": {},
+    "archetype_data": {}
 }
 
 
 # endregion
 
 # region Functions
-
 def initialize_game_conditions(cond_dict):
     """
     Assigns the dynamic conditions to the scenes at the beginning of the game at random.
     :param cond_dict: Conditional dictionary holding game conditions.
     """
     return {con: r.choice(options) for con, options in cond_dict.items()}
+
+
+def reset_game_data():
+    return {
+        "player_data": {
+            "explore_flag": {
+                "snooped_house": False,
+                "snooped_barn": False,
+                "snooped_church": False,
+                "snooped_swamp": False,
+            },
+            "inventory": {},
+            "choices": {
+                "vials_choice": None,
+                "cube_choice": None,
+                "curious_choice": None,
+                "basement_door_choice": None,
+                "basement_choice": None,
+                "basement_two_choice": None,
+                "start_choice": None,
+                "knock_choice": None,
+                "meet_choice": None,
+                "break_choice": None
+            },
+            "ending_key": {}
+        },
+        "test_data": {
+            "trust_answers": {},
+            "faith_answers": {},
+            "intuition_answers": {}
+        },
+        "archetype_data": {},
+        "cond_data": {}
+    }
 
 
 # region Test Functions
@@ -307,17 +356,16 @@ def calculate_trust_result(test_answers, test_choices):
     :param test_choices: A dictionary received from load_test, has the player's answers for the test.
     """
     # Store the test choices in final stats for later analysis
-    trust_test_choices = test_choices
-    final_stats['tests']['trust_test_choices'] = trust_test_choices
-
-    # Run an archetype analysis (external analysis logic)
-    a.calc_trust_test_archetype(test_choices)
+    test_data['trust_answers'] = test_choices
 
     # Count how many answers the player got correct
     correct = 0
     for key, answer in test_answers.items():
         if test_choices.get(key) == answer:
             correct += 1
+
+    # Run an archetype analysis (external analysis logic), and save to final_data
+    final_data['archetype_data']['trust_archetype'] = a.calc_trust_test_archetype(correct)
 
     # Determine ending based on the number of correct answers
     match correct:
@@ -336,8 +384,10 @@ def calculate_faith_result(test_answers, test_choices):
     :param test_choices: A dictionary received from load_test, has the player's answers for the test.
     """
     # Store player answers to final stats for analysis
-    faith_test_choices = test_choices
-    final_stats['tests']['faith_test_choices'] = faith_test_choices
+    test_data['faith_answers'] = test_choices
+
+    # Run an archetype analysis (external analysis logic), and save to final_data
+    final_data['archetype_data']['faith_archetype'] = a.calc_faith_test_archetype(test_choices)
 
     # Score is the sum of all choice values
     score = sum(test_choices.values())
@@ -364,8 +414,10 @@ def calculate_intuition_result(test_answers, test_choices):
     :param test_choices: A dictionary received from load_test, has the player's answers for the test.
     """
     # Store player answers in final stats
-    intuition_test_choices = test_choices
-    final_stats['tests']['intuition_test_choices'] = intuition_test_choices
+    test_data['intuition_answers'] = test_choices
+
+    # Run an archetype analysis (external analysis logic), and save to final_data
+    final_data['archetype_data']['intuition_archetype'] = a.calc_intuition_test_archetype(test_choices)
 
     # Score is the sum of the test values
     score = sum(test_choices.values())
@@ -402,7 +454,6 @@ def load_game_info(scene, scene_name, checkpoint_key):
     :param scene_name: Key that identifies the scene in global scene_dict.
     :param checkpoint_key: The checkpoint tag used to retrieve dialogue/choice data from the scene.
     """
-
     # Setup block: loads the conditionally appropriate dialogue and options
     return_dict = initial_setup(scene_name, scene, checkpoint_key)
     active_block = return_dict['active_block']
@@ -437,7 +488,7 @@ def initial_setup(scene_name, scene, checkpoint_key):
     :return: Dictionary of the current active block, choices, and full checkpoint data.
     """
     vars_return_dict = {'active_block': {}, 'choices': {}, 'checkpoint_data': {}}
-    current_cond = test_dict.get(scene_name, None)
+    current_cond = cond_data.get(scene_name, None)
     checkpoint_data = scene.get(checkpoint_key, {})
 
     # If choice has a conditional branch to take (e.g. 'farmer_in_house'), follow it
@@ -477,17 +528,24 @@ def display_dialogue_and_choices(active_block, choices):
             if 'explore_flag' in locked_info:
                 flags = locked_info['explore_flag']
                 explore_valid = all(
-                    player_stats['explore_flag'].get(flag_key) == val
+                    player_data['explore_flag'].get(flag_key) == val
                     for flag_key, val in flags.items()
                 )
 
             # Check if player has required inventory items
             if 'inventory_need' in locked_info:
                 need = locked_info['inventory_need']
-                inventory_valid = all(
-                    need_key in player_stats['inventory']
-                    for need_key in need
-                )
+                true_keys = [k for k, v in need.items() if v is True]
+                false_keys = [k for k, v in need.items() if v is False]
+
+                has_required = any(key in player_data['inventory'] for key in true_keys)
+                has_wrong = any(key in player_data['inventory'] for key in false_keys)
+
+                # You can see this option if:
+                # - You have at least one of the required items
+                # - AND none of the "should not have" items
+                if has_required and not has_wrong:
+                    inventory_valid = True
 
             # Reveal if either condition is met
             if explore_valid or inventory_valid:
@@ -545,15 +603,27 @@ def key_checks(allow_progress, locked_info):
     if 'explore_flag' in locked_info:
         flags = locked_info['explore_flag']
         for key in flags:
-            if flags[key] == player_stats['explore_flag'][key]:
-                allow_progress = True
+            if key in player_data['explore_flag']:
+                if flags[key] == player_data['explore_flag'][key]:
+                    allow_progress = True
 
     # Check if there is an inventory_need key, and the player has everything required
     if 'inventory_need' in locked_info:
         need = locked_info['inventory_need']
-        for item in need:
-            if item in player_stats['inventory']:
-                allow_progress = True
+
+        true_keys = [k for k, v in need.items() if v is True]
+        false_keys = [k for k, v in need.items() if v is False]
+
+        has_required = any(key in player_data['inventory'] for key in true_keys)
+        has_wrong = any(key in player_data['inventory'] for key in false_keys)
+
+        if has_wrong:
+            allow_progress = True
+        elif not has_required and true_keys:
+            allow_progress = True
+        else:
+            allow_progress = True
+
 
     return allow_progress
 
@@ -587,25 +657,25 @@ def second_key_check(choices, main_key, locked_info, checkpoint_data, x):
     and record choice tags for analysis.
     """
     if 'has_been' in choices[main_key]:
-        if choices[main_key]['has_been'] in player_stats['explore_flag']:
-            player_flags = player_stats['explore_flag']
+        if choices[main_key]['has_been'] in player_data['explore_flag']:
+            player_flags = player_data['explore_flag']
             has_key = choices[main_key]['has_been']
-            # Reverse explore_flag so player cant revisit
-            player_stats['explore_flag'][has_key] = not player_flags[has_key]
+            # Reverse explore_flag so player can't revisit
+            player_data['explore_flag'][has_key] = not player_flags[has_key]
 
     # Add item to player inventory
     if 'inventory_need' in locked_info:
         need = locked_info['inventory_need']
         for key in need:
-            player_stats['inventory'][key] = key_items[key]
+            player_data['inventory'][key] = key_items[key]
 
-    # Add player game choice with current tag to player_stats
+    # Add player game choice with current tag to player_data
     if 'tag' in checkpoint_data:
         tag = checkpoint_data['tag']
-        player_stats['choices'][tag] = x
+        player_data['choices'][tag] = x
     elif 'tag' in choices[main_key]:
         tag = choices[main_key]['tag']
-        player_stats['choices'][tag] = x
+        player_data['choices'][tag] = x
 
 
 def progress_locked(locked_info):
@@ -632,13 +702,13 @@ def not_locked_display(choices, main_key, checkpoint_data, x):
     scene_name = scene_dict[next_scene]
     print(follow_text)
 
-    # Add player game choice with current tag to player_stats
+    # Add player game choice with current tag to player_data
     if 'tag' in checkpoint_data:
         tag = checkpoint_data['tag']
-        player_stats['choices'][tag] = x
+        player_data['choices'][tag] = x
     elif 'tag' in choices[main_key]:
         tag = choices[main_key]['tag']
-        player_stats['choices'][tag] = x
+        player_data['choices'][tag] = x
 
     # Move to the appropriate next function
     if next_cp in test_checkpoint_names:
@@ -661,6 +731,7 @@ def load_ending(scene, checkpoint_key):
     # Get the block of data associated with the ending checkpoint
     active_block = scene.get(checkpoint_key)
     dialogue = active_block.get('dialogue')
+    end_key = active_block.get('ending_key')
 
     # Check if there's a defined next checkpoint and scene to continue into
     if active_block.get('next_checkpoint') and active_block.get('checkpoint_scene'):
@@ -668,17 +739,15 @@ def load_ending(scene, checkpoint_key):
         scene_name = scene_dict[active_block.get('checkpoint_scene')]
         cp_name = active_block.get('checkpoint_scene')
         cp = active_block.get('next_checkpoint')
-        end_key = active_block.get('ending_key')
 
         # Print the current dialogue to the screen
         print(dialogue)
 
-        # TODO: change to game_condition after testing
         # Store the player's ending decision into the test condition dict
-        test_dict[cp_name] = end_key
+        cond_data[cp_name] = end_key
 
         # Save the ending result into the player stats
-        player_stats['ending_key'][end_key] = ec.endings[end_key]
+        player_data['ending_key'][end_key] = ec.endings[end_key]
 
         # Load the correct scene dictionary
         scene = sc.return_scene(cp_name + '_scene_dict')
@@ -689,25 +758,116 @@ def load_ending(scene, checkpoint_key):
         # Check if this ending grants an item and update the inventory
         if active_block.get('inventory_need'):
             for key in active_block['inventory_need']:
-                player_stats['inventory'][key] = key_items[key]
+                player_data['inventory'][key] = key_items[key]
 
         # Load into the next scene and checkpoint
         load_game_info(scene_name, cp_name, cp)
 
     # Final dialogue print if no scene continuation is provided
     print(dialogue)
+    # Save the ending result into the player stats
+    player_data['ending_key'][end_key] = ec.endings[end_key]
+    # Game is over, configure data to insert into db
+    configure_final_data()
 
-    # TODO: Load player_stats into final dict (template in analysis.py)
+#region Database Functions
 
 
-# endregion
+def configure_final_data():
+    """
+    Configures the final_data dictionary to be uploaded to the database.
+
+    This function:
+    - Fills in missing test answers with blank (None) values
+    - Sets archetype values to None if the test wasn't taken
+    - Always calculates the choice-based archetype
+    - Ensures final_data is valid and complete for upload
+    """
+
+    # Default empty test answers (None) for all questions
+    blank_test_data = {
+        "trust_answers": {f"question_{i}": None for i in range(1, 10)},
+        "faith_answers": {f"question_{i}": None for i in range(1, 7)},
+        "intuition_answers": {f"question_{i}": None for i in range(1, 4)},
+    }
+
+    # Checks if a test was actually taken
+    def has_real_answers(answers_dict):
+        return any(v is not None for v in answers_dict.values())
+
+    # These will be filled in below
+    final_test_data = {}
+    final_arch_data = {}
+
+    # Fill in test answers and calculate archetypes as appropriate
+    check_tests(test_data, final_test_data, final_arch_data, has_real_answers, blank_test_data)
+
+    # Choice archetype is always calculated regardless of test participation
+    final_arch_data["choice_archetype"] = a.calc_choice_archetype(player_data["choices"])
+
+    # Assemble final payload for DB
+    final_data = {
+        "cond_data": cond_data,
+        "player_data": player_data,
+        "test_data": final_test_data,
+        "archetype_data": final_arch_data,
+    }
+
+    #TODO: Later on replace 'test' placeholder as user_name
+    #print(final_data) for future testing
+    db_instance.insert_full_run('Tester', final_data)
 
 
-# TODO: Save for now but will be using final_data template
-# for db
-final_stats = {'tests': {},
-               'player_stats': {}
-               }
+def check_tests(test_data, final_test_data, final_arch_data, has_real_answers, blank_test_data):
+    """
+    Fills final_test_data and final_arch_data based on what tests the player completed.
+    If a test is missing or all answers are None, it sets blank test data and None archetypes.
+    """
+    def calc_trust(test_answers, test_choices):
+        # Count how many answers the player got correct
+        correct = 0
+        for key, answer in test_answers.items():
+            if test_choices.get(key) == answer:
+                correct += 1
+        return correct
 
-# TODO: Still need to fully run through game after clean-up maintenance [start -> player_data loaded into db]
-#load_game_info(start_scene, 'start', 'intro')
+    # --- Trust Test ---
+    if has_real_answers(test_data.get("trust_answers", {})):
+        final_test_data["trust_answers"] = test_data["trust_answers"]
+        final_arch_data["trust_archetype"] = a.calc_trust_test_archetype(
+            calc_trust(test_answers_dict['trust'], test_data["trust_answers"]))
+    else:
+        final_test_data["trust_answers"] = blank_test_data["trust_answers"]
+        final_arch_data["trust_archetype"] = None
+
+    # --- Faith Test ---
+    if has_real_answers(test_data.get("faith_answers", {})):
+        final_test_data["faith_answers"] = test_data["faith_answers"]
+        final_arch_data["faith_archetype"] = a.calc_faith_test_archetype(test_data["faith_answers"])
+    else:
+        final_test_data["faith_answers"] = blank_test_data["faith_answers"]
+        final_arch_data["faith_archetype"] = None
+
+    # --- Intuition Test ---
+    if has_real_answers(test_data.get("intuition_answers", {})):
+        final_test_data["intuition_answers"] = test_data["intuition_answers"]
+        final_arch_data["intuition_archetype"] = a.calc_intuition_test_archetype(test_data["intuition_answers"])
+    else:
+        final_test_data["intuition_answers"] = blank_test_data["intuition_answers"]
+        final_arch_data["intuition_archetype"] = None
+
+
+#endregion
+
+#endregion
+
+#region Reset All Game Data
+final_data = reset_game_data()
+player_data = final_data["player_data"]
+test_data = final_data["test_data"]
+cond_data = final_data["cond_data"]
+archetype_data = final_data["archetype_data"]
+#endregion
+
+cond_data = initialize_game_conditions(condition_dict)
+load_game_info(start_scene, 'start', 'intro')

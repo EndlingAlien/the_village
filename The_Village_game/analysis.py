@@ -5,7 +5,6 @@ analysis.py desc:
     (trust, faith, intuition) and in-game choices.
     Outputs archetype labels for use in the final player stats analysis.
 """
-
 from collections import Counter
 
 #region Archetype Dictionaries
@@ -43,20 +42,6 @@ timid_arch = {
     "break_choice": 2
 }
 #endregion
-
-#TODO: choices_list for testing, use player_stats['choices']
-choices_list = {  # all will stay as None, final check will ask: if choices[key] =! None -> save to db
-    "vials_choice": 1,
-    "cube_choice": 1,
-    "curious_choice": 2,
-    "basement_door_choice": 3,
-    "basement_choice": 3,
-    "basement_two_choice": 2,
-    "start_choice": 1,
-    "knock_choice": 2,
-    "meet_choice": 2,
-    "break_choice": 1
-}
 
 
 def calc_choice_archetype(choices):
