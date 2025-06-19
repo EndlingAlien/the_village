@@ -247,7 +247,7 @@ class MockDatabase:
         :param user_name: The name of the user to create or fetch (case-insensitive).
         :return: The user_id of the existing or newly created user.
         """
-        user_name = user_name.lower()  # Normalize username to lowercase for consistency
+        user_name = user_name.strip().lower()  # Normalize username to lowercase for consistency
 
         # Check if the user already exists in the database
         if self.check_if_user_exists(user_name):
@@ -280,9 +280,9 @@ class MockDatabase:
         today = date.today().isoformat()  # Get current date in ISO format
 
         # Extract scene conditions
-        farm_cond = cond_dict.get('farm')
-        church_cond = cond_dict.get('church')
-        swamp_cond = cond_dict.get('swamp')
+        farm_cond = str(cond_dict.get('farm')) if cond_dict.get('farm') is not None else None
+        church_cond = str(cond_dict.get('church')) if cond_dict.get('church') is not None else None
+        swamp_cond = str(cond_dict.get('swamp')) if cond_dict.get('swamp') is not None else None
 
         # Insert new run record with conditions and archetype
         self.cursor.execute(
@@ -297,7 +297,7 @@ class MockDatabase:
 
     def add_choices(self, run_id, choices_dict):
         """
-        Adds player choice data for a run into the choices table.
+        Adds player choice data for a run into the choice table.
         :param run_id: The run identifier this choice data belongs to.
         :param choices_dict: Dictionary of choice keys and their selected values.
         """
@@ -305,6 +305,9 @@ class MockDatabase:
         columns = ','.join(['run_id'] + list(choices_dict.keys()))
         placeholders = ','.join(['?'] * (len(choices_dict) + 1))
         values = [run_id] + list(choices_dict.values())
+
+        if any(isinstance(v, dict) for v in choices_dict.values()):
+            raise ValueError("Choices dict contains nested dicts. Expected flat key: value pairs.")
 
         # Check if choices for this run already exist
         if self.check_if_run_exists('choices', run_id):
@@ -333,6 +336,10 @@ class MockDatabase:
         placeholders = ','.join(['?'] * (len(explore_dict) + 1))
         values = [run_id] + list(explore_dict.values())
 
+        for k, v in explore_dict.items():
+            if isinstance(v, dict):
+                raise TypeError(f"Explore flag '{k}' has invalid dict value: {v}")
+
         # Check if explore flags for this run already exist
         if self.check_if_run_exists('explore_flags', run_id):
             result = pd.read_sql_query(
@@ -359,7 +366,11 @@ class MockDatabase:
         columns = ('run_id',) + tuple(f'question_{i}' for i in range(1, 7))
         column_str = ','.join(columns)
         placeholders = ','.join(['?'] * (len(faith_answers_dict) + 1))
-        values = [run_id] + list(faith_answers_dict.values())
+        values = [run_id] + [faith_answers_dict.get(f'question_{i}') for i in range(1, 7)]
+
+        for k, v in faith_answers_dict.items():
+            if isinstance(v, dict):
+                raise TypeError(f"Faith answer '{k}' has invalid dict value: {v}")
 
         # Check if faith test answers for this run already exist
         if self.check_if_run_exists('faith_test_answers', run_id):
@@ -387,7 +398,12 @@ class MockDatabase:
         columns = ('run_id',) + tuple(f'question_{i}' for i in range(1, 4))
         column_str = ','.join(columns)
         placeholders = ','.join(['?'] * (len(intuition_answers_dict) + 1))
-        values = [run_id] + list(intuition_answers_dict.values())
+        values = [run_id] + [intuition_answers_dict.get(f'question_{i}') for i in range(1, 4)]
+
+        for k, v in intuition_answers_dict.items():
+            if isinstance(v, dict):
+                raise TypeError(f"Intuition answer '{k}' has invalid dict value: {v}")
+
 
         # Check if intuition test answers for this run already exist
         if self.check_if_run_exists('intuition_test_answers', run_id):
@@ -414,8 +430,12 @@ class MockDatabase:
         # Define columns: run_id plus question_1 to question_9
         columns = ('run_id',) + tuple(f'question_{i}' for i in range(1, 10))
         column_str = ','.join(columns)
-        placeholders = ','.join(['?'] * (len(trust_answers_dict) + 1))
-        values = [run_id] + list(trust_answers_dict.values())
+        placeholders = ','.join(['?'] * len(columns))
+        values = [run_id] + [trust_answers_dict.get(f'question_{i}') for i in range(1, 10)]
+
+        for k, v in trust_answers_dict.items():
+            if isinstance(v, dict):
+                raise TypeError(f"Trust answer '{k}' has invalid dict value: {v}")
 
         # Check if trust test answers for this run already exist
         if self.check_if_run_exists('trust_test_answers', run_id):
@@ -433,12 +453,21 @@ class MockDatabase:
                 values
             )
 
-    def add_end_keys(self, run_id, ending_keys_dict):
+    def add_end_keys(self, run_id, ending_keys_list):
         """
         Inserts or updates the end keys (flags representing game endings and statuses) for a given run.
         :param run_id: The identifier of the current run.
-        :param ending_keys_dict: Dictionary containing end key flags (boolean values).
+        :param ending_keys_list: List of strings representing end keys reached.
         """
+
+        # Safety check: ensure input is a list of strings, no dicts sneaking in
+        if not isinstance(ending_keys_list, list):
+            raise TypeError(f"Expected ending_keys_list to be a list, got {type(ending_keys_list).__name__}")
+
+        for item in ending_keys_list:
+            if not isinstance(item, str):
+                raise TypeError(f"Ending key list contains a non-string value: {item} ({type(item).__name__})")
+
         # Default all possible ending flags to False
         ending_flags = {
             "cleansed": False,
@@ -459,12 +488,12 @@ class MockDatabase:
             "trust_pass": False
         }
 
-        # Update default flags with those present in the input dictionary
+        # Set flags based on what’s in the list
         for key in ending_flags:
-            if key in ending_keys_dict:
+            if key in ending_keys_list:
                 ending_flags[key] = True
 
-        # Prepare SQL column names and placeholders for insertion
+        # Define columns and values before the insert
         columns = ','.join(['run_id'] + list(ending_flags.keys()))
         placeholders = ','.join(['?'] * (len(ending_flags) + 1))
         values = [run_id] + list(ending_flags.values())
@@ -491,30 +520,15 @@ class MockDatabase:
         :param run_id: The identifier of the current run.
         :param inventory_dict: Dictionary containing inventory item flags (boolean values).
         """
-        # Default all possible inventory items to False
-        inventory_flags = {
-            "decoder": False,
-            "mask": False,
-            "bible": False,
-            "letter": False,
-            "hammer": False,
-            "key": False,
-            "screwdriver": False,
-            "knife": False,
-            "red_vial": False,
-            "blue_vial": False,
-            "green_vial": False,
-        }
 
-        # Update default inventory with those present in the input dictionary
-        for key in inventory_flags:
-            if key in inventory_dict:
-                inventory_flags[key] = inventory_dict[key]
+        # Prepare column names and placeholders for SQL insertion
+        columns = ','.join(['run_id'] + list(inventory_dict.keys()))
+        placeholders = ','.join(['?'] * (len(inventory_dict) + 1))
+        values = [run_id] + list(inventory_dict.values())
 
-        # Prepare SQL column names and placeholders for insertion
-        columns = ','.join(['run_id'] + list(inventory_flags.keys()))
-        placeholders = ','.join(['?'] * (len(inventory_flags) + 1))
-        values = [run_id] + list(inventory_flags.values())
+        for k, v in inventory_dict.items():
+            if isinstance(v, dict):
+                raise TypeError(f"Inventory '{k}' has invalid dict value: {v}")
 
         # Check if inventory for this run already exists
         if self.check_if_run_exists('inventory', run_id):
@@ -540,6 +554,12 @@ class MockDatabase:
         :param faith_arch: The faith archetype result as a string.
         :param intuition_arch: The intuition archetype result as a string.
         """
+
+        for name, arch in [('trust', trust_arch), ('faith', faith_arch), ('intuition', intuition_arch)]:
+            if isinstance(arch, dict):
+                raise TypeError(f"{name} archetype is a dict, expected string or None: {arch}")
+
+
         # Check if test results for this run already exist
         if self.check_if_run_exists('test_results', run_id):
             result = pd.read_sql_query(

@@ -68,7 +68,7 @@ test_answers_dict = {
     },
 }
 # TODO: When tkinter in use, polish up the values of this dict
-# Key items that are added to the player's inventory during the story
+# Key items that are added to the player's inventory during the story, for db
 key_items = {
     "decoder": {
         "desc": "A paper you found at the church. It has a table showing how to decode symbols.",
@@ -131,6 +131,8 @@ key_items = {
 test_checkpoint_names = ['trust_test', 'faith_test', 'intuition_test']
 
 # Dictionary that holds all stats and game state for the player
+# TODO: use this user_name var for username insert into db
+user_name = None
 player_data = {
     "explore_flag": {
         "snooped_house": False,
@@ -138,7 +140,19 @@ player_data = {
         "snooped_church": False,
         "snooped_swamp": False,
     },
-    "inventory": {},
+    "inventory": {
+        "decoder": False,
+        "mask": False,
+        "bible": False,
+        "letter": False,
+        "hammer": False,
+        "key": False,
+        "screwdriver": False,
+        "knife": False,
+        "red_vial": False,
+        "green_vial": False,
+        "blue_vial": False,
+    },
     "choices": {
         "vials_choice": None,
         "cube_choice": None,
@@ -151,7 +165,7 @@ player_data = {
         "meet_choice": None,
         "break_choice": None
     },
-    "ending_key": {},
+    "ending_key": [],
 }
 test_data = {
     "trust_answers": {},
@@ -159,17 +173,18 @@ test_data = {
     "intuition_answers": {}
 }
 archetype_data = {
-        "trust_archetype": None,
-        "faith_archetype": None,
-        "intuition_archetype": None,
-        "choice_archetype": None,
+    "trust_archetype": None,
+    "faith_archetype": None,
+    "intuition_archetype": None,
+    "choice_archetype": None,
 }
 cond_data = {
-        "farm": None,
-        "swamp": None,
-        "church": None
+    "farm": None,
+    "swamp": None,
+    "church": None
 }
 final_data = {
+    "user_name": None,
     "cond_data": {},
     "player_data": {},
     "test_data": {},
@@ -190,6 +205,7 @@ def initialize_game_conditions(cond_dict):
 
 def reset_game_data():
     return {
+        "user_name": None,
         "player_data": {
             "explore_flag": {
                 "snooped_house": False,
@@ -197,7 +213,19 @@ def reset_game_data():
                 "snooped_church": False,
                 "snooped_swamp": False,
             },
-            "inventory": {},
+            "inventory": {
+                "decoder": False,
+                "mask": False,
+                "bible": False,
+                "letter": False,
+                "hammer": False,
+                "key": False,
+                "screwdriver": False,
+                "knife": False,
+                "red_vial": False,
+                "green_vial": False,
+                "blue_vial": False,
+            },
             "choices": {
                 "vials_choice": None,
                 "cube_choice": None,
@@ -210,7 +238,7 @@ def reset_game_data():
                 "meet_choice": None,
                 "break_choice": None
             },
-            "ending_key": {}
+            "ending_key": []
         },
         "test_data": {
             "trust_answers": {},
@@ -521,6 +549,7 @@ def display_dialogue_and_choices(active_block, choices):
         # If not already visible, check if it can be revealed
         if not should_display:
             locked_info = choices[key].get('locked', {})
+            # Assume blocked display
             explore_valid = False
             inventory_valid = False
 
@@ -534,18 +563,21 @@ def display_dialogue_and_choices(active_block, choices):
 
             # Check if player has required inventory items
             if 'inventory_need' in locked_info:
-                need = locked_info['inventory_need']
-                true_keys = [k for k, v in need.items() if v is True]
-                false_keys = [k for k, v in need.items() if v is False]
+                flags = locked_info['inventory_need']
 
-                has_required = any(key in player_data['inventory'] for key in true_keys)
-                has_wrong = any(key in player_data['inventory'] for key in false_keys)
-
-                # You can see this option if:
-                # - You have at least one of the required items
-                # - AND none of the "should not have" items
-                if has_required and not has_wrong:
-                    inventory_valid = True
+                if any("_vial" in key for key in flags):
+                    # VIAL CASE — all vial keys must match
+                    inventory_valid = all(
+                        player_data['inventory'].get(flag_key) == val
+                        for flag_key, val in flags.items()
+                        if "_vial" in flag_key
+                    )
+                else:
+                    # GENERAL CASE — at least one key must match
+                    inventory_valid = any(
+                        player_data['inventory'].get(flag_key) == val
+                        for flag_key, val in flags.items()
+                    )
 
             # Reveal if either condition is met
             if explore_valid or inventory_valid:
@@ -609,21 +641,11 @@ def key_checks(allow_progress, locked_info):
 
     # Check if there is an inventory_need key, and the player has everything required
     if 'inventory_need' in locked_info:
-        need = locked_info['inventory_need']
-
-        true_keys = [k for k, v in need.items() if v is True]
-        false_keys = [k for k, v in need.items() if v is False]
-
-        has_required = any(key in player_data['inventory'] for key in true_keys)
-        has_wrong = any(key in player_data['inventory'] for key in false_keys)
-
-        if has_wrong:
-            allow_progress = True
-        elif not has_required and true_keys:
-            allow_progress = True
-        else:
-            allow_progress = True
-
+        flags = locked_info['inventory_need']
+        for key in flags:
+            if key in player_data['inventory']:
+                if flags[key] == player_data['inventory'][key]:
+                    allow_progress = True
 
     return allow_progress
 
@@ -667,7 +689,7 @@ def second_key_check(choices, main_key, locked_info, checkpoint_data, x):
     if 'inventory_need' in locked_info:
         need = locked_info['inventory_need']
         for key in need:
-            player_data['inventory'][key] = key_items[key]
+            player_data['inventory'][key] = not player_data['inventory'][key]
 
     # Add player game choice with current tag to player_data
     if 'tag' in checkpoint_data:
@@ -747,7 +769,7 @@ def load_ending(scene, checkpoint_key):
         cond_data[cp_name] = end_key
 
         # Save the ending result into the player stats
-        player_data['ending_key'][end_key] = ec.endings[end_key]
+        player_data['ending_key'].append(end_key)
 
         # Load the correct scene dictionary
         scene = sc.return_scene(cp_name + '_scene_dict')
@@ -757,8 +779,9 @@ def load_ending(scene, checkpoint_key):
 
         # Check if this ending grants an item and update the inventory
         if active_block.get('inventory_need'):
-            for key in active_block['inventory_need']:
-                player_data['inventory'][key] = key_items[key]
+            need = active_block['inventory_need']
+            for key in need:
+                player_data['inventory'][key] = not player_data['inventory'][key]
 
         # Load into the next scene and checkpoint
         load_game_info(scene_name, cp_name, cp)
@@ -766,11 +789,12 @@ def load_ending(scene, checkpoint_key):
     # Final dialogue print if no scene continuation is provided
     print(dialogue)
     # Save the ending result into the player stats
-    player_data['ending_key'][end_key] = ec.endings[end_key]
+    player_data['ending_key'].append(end_key)
     # Game is over, configure data to insert into db
     configure_final_data()
 
-#region Database Functions
+
+# region Database Functions
 
 
 def configure_final_data():
@@ -807,15 +831,16 @@ def configure_final_data():
 
     # Assemble final payload for DB
     final_data = {
+        "user_name": user_name,
         "cond_data": cond_data,
         "player_data": player_data,
         "test_data": final_test_data,
         "archetype_data": final_arch_data,
     }
 
-    #TODO: Later on replace 'test' placeholder as user_name
-    #print(final_data) for future testing
-    db_instance.insert_full_run('Tester', final_data)
+    # TODO: Later on replace 'test' placeholder as user_name
+    print(final_data)  # for future testing
+    db_instance.insert_full_run(final_data['user_name'], final_data)
 
 
 def check_tests(test_data, final_test_data, final_arch_data, has_real_answers, blank_test_data):
@@ -823,6 +848,7 @@ def check_tests(test_data, final_test_data, final_arch_data, has_real_answers, b
     Fills final_test_data and final_arch_data based on what tests the player completed.
     If a test is missing or all answers are None, it sets blank test data and None archetypes.
     """
+
     def calc_trust(test_answers, test_choices):
         # Count how many answers the player got correct
         correct = 0
@@ -857,17 +883,18 @@ def check_tests(test_data, final_test_data, final_arch_data, has_real_answers, b
         final_arch_data["intuition_archetype"] = None
 
 
-#endregion
+# endregion
 
-#endregion
+# endregion
 
-#region Reset All Game Data
+# region Reset All Game Data
 final_data = reset_game_data()
 player_data = final_data["player_data"]
 test_data = final_data["test_data"]
 cond_data = final_data["cond_data"]
 archetype_data = final_data["archetype_data"]
-#endregion
+user_name = final_data['user_name']
+# endregion
 
 cond_data = initialize_game_conditions(condition_dict)
 load_game_info(start_scene, 'start', 'intro')

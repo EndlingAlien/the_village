@@ -10,7 +10,6 @@ scenes.py desc:
     Acts as the core data structure hub for all scene progressions and branching logic.
 """
 
-
 # Checkpoint Template
 '''
 "checkpoint_name": {
@@ -27,7 +26,7 @@ scenes.py desc:
 },
 '''
 
-#region Definition of Option Keys
+# region Definition of Option Keys
 """
 option_definition:
     Required Keys (all options must include these):
@@ -51,9 +50,9 @@ option_definition:
 
     "ending_key"        : The key used to track which ending has been unlocked. (string)
 """
-#endregion
+# endregion
 
-#region Tag definitions for player_stats['choices']
+# region Tag definitions for player_stats['choices']
 """
 vials_choice - Where you poured the vials. Located in center_scene_dict["statue_vials"].
 
@@ -76,7 +75,8 @@ meet_choice - Whether you chose to kill the farmer before the test. Located in f
 break_choice - Whether you took a break on the porch. Located in after_test_house["trust_pass"].
 """
 
-#endregion
+
+# endregion
 
 
 def return_scene(string):
@@ -96,8 +96,9 @@ def return_scene(string):
         case 'start_scene_dict':
             return start_scene_dict
 
+
 # TODO: When tkinter in use, redo all dialogue/text (didn't do yet becasue formatting might be weird)
-#region Scene Dictionaries
+# region Scene Dictionaries
 
 # Where the game starts
 start_scene_dict = {
@@ -293,7 +294,7 @@ center_scene_dict = {
             }
         }
     },
-    #region Center Endings
+    # region Center Endings
     "cleansed_ending": {
         "dialogue": "The water drains from the fountain slowly, then cracks open, revealing a spiraling staircase. You descend "
                     "and are placed in a sewer, a sign reads city with an arrow. You follow it. Youve escaped the village",
@@ -309,7 +310,7 @@ center_scene_dict = {
         "dialogue": "You sit down by the statue and close your eyes, your exhaustion finally catching up to you. You keep your eyes closed as you hear footsteps surround you...",
         "ending_key": "forfeit"
     },
-    #endregion
+    # endregion
 }
 
 # Swamp Dictionary: Fog density is conditional [heavy, light, or none]
@@ -333,7 +334,7 @@ swamp_scene_dict = {
             }
         }
     },
-    #region Main Swamp Scenes
+    # region Main Swamp Scenes
     "start_position": {
         "heavy_fog": {
             "dialogue": "As you get closer to the swamp, the fog begins to get heavy, its hard to see anything",
@@ -608,7 +609,7 @@ swamp_scene_dict = {
             }
         }
     },
-    #endregion
+    # endregion
     # Intuition Test
     "intuition_test": {
         "question_1": {
@@ -675,7 +676,7 @@ swamp_scene_dict = {
             }
         }
     },
-    #region After Intuition Test Scenes
+    # region After Intuition Test Scenes
     "make_choice": {  # choose for ending after test if you got the curious result
         "tag": "curious_choice",
         "dialogue": "The Aliens are captivated by your curiosity they wish for you to stay so they may study you",
@@ -787,8 +788,8 @@ swamp_scene_dict = {
             }
         }
     },
-    #endregion
-    #region Swamp Endings
+    # endregion
+    # region Swamp Endings
     "rejected_ending": {
         "dialogue": "Your pathetic, the aliens probe you, dissect you, then discard you.",
         "ending_key": "rejected"
@@ -807,10 +808,10 @@ swamp_scene_dict = {
         "next_checkpoint": "after_test_swamp",
         "checkpoint_scene": "swamp",
         "inventory_need": {
-            "blue_vial": True,
+            "blue_vial": False,
         }
     },
-    #endregion
+    # endregion
 }
 
 # Church Dictionary: State of the church is conditional [priest inside the church, church is empty, the basement door is open]
@@ -836,7 +837,7 @@ church_scene_dict = {
             }
         }
     },
-    #region Main Church Scenes
+    # region Main Church Scenes
     "start_position": {
         "church_is_empty": {
             "dialogue": "As you get closer to the church, you cant see any lights or hear any voices, it might be abandoned...",
@@ -940,6 +941,7 @@ church_scene_dict = {
                     "checkpoint_scene": "church",
                     "follow_up_text": "You quietly sneak up on the priest, and kill him",
                     "next_checkpoint": "priest_death_ending",
+                    "is_displayed": False,
                     "locked": {
                         "locked_text": "You instinctively reach for a weapon, you dont have...",
                         "locked_checkpoint": "inside_church",
@@ -1130,7 +1132,7 @@ church_scene_dict = {
             }
         }
     },
-    #endregion
+    # endregion
     # Faith Test
     "faith_test": {
         "question_1": {
@@ -1278,7 +1280,7 @@ church_scene_dict = {
             }
         }
     },
-    #region After Faith Test Scenes
+    # region After Faith Test Scenes
     "after_test_start": {  # go to farm or barn
         "dialogue": "You return to the church...",
         "choices": {
@@ -1355,8 +1357,8 @@ church_scene_dict = {
             }
         }
     },
-    #endregion
-    #region Church Endings
+    # endregion
+    # region Church Endings
     "believer_ending": {
         "dialogue": "the priest sees light within your eyes, youve been asked to join the village",
         "ending_key": "believer"
@@ -1367,7 +1369,7 @@ church_scene_dict = {
         "next_checkpoint": "after_test_church",
         "checkpoint_scene": "church",
         "inventory_need": {
-            "green_vial": True,
+            "green_vial": False,
         }
     },
     "heretics_ending": {
@@ -1384,7 +1386,7 @@ church_scene_dict = {
                     "takes off their mask and robe before approaching you, he looks like a priest. 'Blessed are the chosen. Youve been chosen for the ritual tomorrow",
         "ending_key": "altar"
     }
-    #endregion
+    # endregion
 }
 
 # Farm Dictionary: Farmer location is conditional [inside the house, sitting outside, inside the barn]
@@ -1410,7 +1412,7 @@ farm_scene_dict = {
             }
         }
     },
-    #region Main farm Scene
+    # region Main farm Scene
     "start_position": {  # go to farm or barn
         "tag": "start_choice",
         "farmer_in_house": {
@@ -1680,8 +1682,8 @@ farm_scene_dict = {
             }
         }
     },
-    #endregion
-    #region Crossroads
+    # endregion
+    # region Crossroads
     "farm_crossroads": {  # crossroads to leave the scene
         "dialogue": "Where do you want to go?",
         "choices": {
@@ -1744,13 +1746,21 @@ farm_scene_dict = {
         "dialogue": 'The farmer stands there, waiting...',
         "choices": {
             "option_one": {
-                "Text": "kill the farmer.",
+                "Text": "Greet him politely.",
                 "id": 1,
+                "follow_up_text": "You say hello to the farmer. The farmer smiles...",
+                "next_checkpoint": "trust_test",
+                "checkpoint_scene": "farm"
+            },
+            "option_two": {
+                "Text": "kill the farmer.",
+                "id": 2,
                 "follow_up_text": "You reach for a weapon...",
                 "next_checkpoint": "farmer_death_ending",
                 "checkpoint_scene": "farm",
+                "is_displayed": False,
                 "locked": {
-                    "locked_text": "You reach for a weapon you dont have...",
+                    "locked_text": "You reach for a weapon you don't have...",
                     "locked_checkpoint": "meet_farmer",
                     "locked_scene": "farm",
                     "inventory_need": {
@@ -1759,17 +1769,10 @@ farm_scene_dict = {
                         "screwdriver": True
                     }
                 }
-            },
-            "option_two": {
-                "Text": "Greet him politely.",
-                "id": 2,
-                "follow_up_text": "You say hello to the farmer.The farmer smiles...",
-                "next_checkpoint": "trust_test",
-                "checkpoint_scene": "farm"
             }
         }
     },
-    #endregion
+    # endregion
     # Trust Test
     "trust_test": {
         "question_1": {
@@ -1941,7 +1944,7 @@ farm_scene_dict = {
             }
         },
     },
-    #region After Trust Test Scenes
+    # region After Trust Test Scenes
     "fail_choice": {  # failed the test, might have a weapon
         "dialogue": "The farmer smiles and shakes his head walking back into the kitchen, when he returns hes wearing a mask and holding a "
                     "butcher knife. 'Grandmami used to always say the wicked are packed with FLAVOUR' ",
@@ -2213,8 +2216,8 @@ farm_scene_dict = {
             }
         }
     },
-    #endregion
-    #region Farm Endings
+    # endregion
+    # region Farm Endings
     "butcher_ending": {
         "dialogue": "Before your able to make your way into the barn you feel a sharp pain in your back. "
                     "When you look down you see youve been stabbed",
@@ -2246,11 +2249,11 @@ farm_scene_dict = {
         "next_checkpoint": "after_test_house_crossroads",
         "checkpoint_scene": "farm",
         "inventory_need": {
-            "red_vial": True,
+            "red_vial": False,
         }
 
     }
-    #endregion
+    # endregion
 }
 
-#endregion
+# endregion
