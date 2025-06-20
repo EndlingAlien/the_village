@@ -656,6 +656,12 @@ class MockDatabase:
 
     # ________________________TESTING AREA _______________________
 
+    def retrieve_all_users(self):
+        query = "SELECT user_name FROM users"
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
+
+
     # TODO: Use this when done with testing to remove testing data and reset db
     def reset_database(self):
         if os.path.exists(self.db_name):
@@ -663,7 +669,6 @@ class MockDatabase:
         self.cursor.execute("DROP TABLE IF EXISTS player_runs;")
         self.cursor.execute("DROP TABLE IF EXISTS users;")
         self.create_tables()
-
 
 # for testing
 test_db = MockDatabase()
