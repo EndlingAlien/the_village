@@ -2,6 +2,7 @@
 import tkinter as tk
 import game_db as db
 import re
+from PIL import Image, ImageTk
 import random
 import time
 import sys
@@ -13,7 +14,124 @@ from tkinter import messagebox
 import time
 import sys
 
+#our user at point of login
+user_name = None
 
+
+def display_home_screen():
+    clear_screen(root)
+    # Load and resize the background image
+    bliss_img = Image.open('images/bg_with_icons.jpg')
+    bliss_img = bliss_img.resize((1920, 1080))
+    photo = ImageTk.PhotoImage(bliss_img)
+
+    # Create a canvas and set it to fill the window
+    bg_canvas = tk.Canvas(root, width=1920, height=1080, highlightthickness=0)
+    bg_canvas.pack(fill="both", expand=True)
+
+
+    #FOR TESTING
+    def print_canvas_coords(event):
+        x = bg_canvas.canvasx(event.x)
+        y = bg_canvas.canvasy(event.y)
+        print(f"Canvas coords: ({x}, {y})")
+
+    bg_canvas.bind("<Button-1>", print_canvas_coords)
+
+    #^^^^^^^^^^^^^^^^^^^^^^^^^^^FOR TESTING
+
+    # Put the background image on the canvas
+    bg_canvas.create_image(0, 0, image=photo, anchor="nw")
+    bg_canvas.image = photo  # Keep a reference!
+
+    bottom_bar = tk.Frame(bg_canvas, width=4000, height=80, bg='#C0C0C0', highlightthickness=3, relief='raised')
+    bg_canvas.create_window(0, 1072, window=bottom_bar)
+
+    time_label = tk.Label(bg_canvas, text=' 3:33 AM ', font=('Modern DOS 9x16', 24), fg='black', bg='#B3B3B3', highlightthickness=2, relief='sunken')
+    bg_canvas.create_window(1850, 1055, window=time_label)
+
+    escape_label = tk.Label(bg_canvas, text=' ESCAPE ', font=('Modern DOS 9x16', 24), fg='black', bg='#B3B3B3', highlightthickness=2, relief='raised', highlightbackground='black')
+    bg_canvas.create_window(65, 1056, window=escape_label, width=120, height=44)
+
+    #region Interactive Icons
+    log_icon = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    bg_canvas.move(log_icon, 420, 50)
+
+    archive_icon = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    bg_canvas.move(archive_icon, 750, 100)
+
+    game_icon = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    bg_canvas.move(game_icon, 550, 260)
+    #endregion
+    #region Non-interactive icons
+    # Add invisible rectangles on this canvas [where they will click, remove outline for it to work]
+    #region Icon
+    dos_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    tree_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    people_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    phone_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    comp_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    occult_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    prog_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    lan_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    folder_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    earth_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    cam_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    aol_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    trash_rect = bg_canvas.create_rectangle(50, 50, 160, 160, fill='', outline='yellow')
+    #endregion
+    #region Icon Placement
+    bg_canvas.move(dos_rect, -10, -33)
+    bg_canvas.move(tree_rect, -10, 135)
+    bg_canvas.move(people_rect, -10, 305)
+    bg_canvas.move(phone_rect, -10, 465)
+    bg_canvas.move(comp_rect, -10, 640)
+    bg_canvas.move(occult_rect, -10, 810)
+    bg_canvas.move(prog_rect, 150, -33)
+    bg_canvas.move(lan_rect, 150, 135)
+    bg_canvas.move(folder_rect, 150, 305)
+    bg_canvas.move(earth_rect, 150, 460)
+    bg_canvas.move(cam_rect, 150, 640)
+    bg_canvas.move(aol_rect, 150, 810)
+    bg_canvas.move(trash_rect, 1710, 810)
+    #endregion
+    #endregion
+
+
+
+
+    # You could also create invisible "buttons" using tag bindings
+    def on_click(event):
+        print("Clicked!")
+
+    bg_canvas.tag_bind(dos_rect, '<Button-1>', on_click)
+
+
+
+
+
+# region Functions
+def get_users_from_db():
+    result = db.MockDatabase().retrieve_all_users()
+    names = [name[0].capitalize() for name in result]
+    return names
+
+
+def show_all_users(event=None):
+    user_list_window = Fake_Window(root, display_close=True, display_content=True, can_drag=True)
+    user_list_window.user_list()
+
+
+def clear_screen(parent):
+    for widget in root.winfo_children():
+        widget.destroy()
+
+
+# endregion
+
+# region Transition to Home Screen
+
+#region Typewriter + bsod_message
 def typewriter_tk_advanced(label, text, char_delay=40, line_delay=500):
     """
     label: tk.Label to update
@@ -87,28 +205,9 @@ bsod_message = ("*** STOP: 0x0000DEAD (0xC0DEFEED, 0xBAADF00D, 0xDEADC0DE, 0xFEE
                 "Unable to verify ritual integrity.\nThe Village Protocol has been breached.\n\n>>> DO NOT ATTEMPT TO RESTART <<<\n\n"
                 "If you see this screen, your presence is already logged.\nContact your Administrator of the Beams for assistance.\n"
                 "Press any key to initiate the Rite of Renewal...\n\n*** SYSTEM HALTED ***")
+#endregion
 
 
-# region Functions
-def get_users_from_db():
-    result = db.MockDatabase().retrieve_all_users()
-    names = [name[0].capitalize() for name in result]
-    return names
-
-
-def show_all_users(event=None):
-    user_list_window = Fake_Window(root, display_close=True, display_content=True, can_drag=True)
-    user_list_window.user_list()
-
-
-def clear_screen(parent):
-    for widget in root.winfo_children():
-        widget.destroy()
-
-
-# endregion
-
-# region Transition to Home Screen
 def transition_to_home(event=None):
     clear_screen(root)
     root.configure(bg='black')
@@ -146,21 +245,23 @@ def bsod_transition():
 
 
 def load_home():
+    print(user_name)
     clear_screen(root)
     root.configure(bg='black')
     welcome = tk.Label(root, text="Welcome Home", font=('Modern DOS 9x16', 20),
                       bg='#008080', fg='white', justify='center')
-    root.after(1000, lambda: root.configure(bg='#20181f'))
-    root.after(2000, lambda: root.configure(bg='#302c3f'))
-    root.after(3000, lambda: root.configure(bg='#2f4661'))
-    root.after(4000, lambda: root.configure(bg='#1a6379'))
-    root.after(6000, lambda: root.configure(bg='#008080'))
-    root.after(6500, lambda: welcome.pack(fill='both', expand=True))
 
+    #fade from black to win95 teal
+    colors = ['#20181f', '#302c3f', '#2f4661', '#1a6379', '#008080']
+    delay = 1000  # 1 second
 
+    for i, color in enumerate(colors):
+        root.after(delay * (i + 1), lambda c=color: root.configure(bg=c))
 
-
+    root.after(6300, lambda: welcome.pack(fill='both', expand=True))
+    root.after(6850, lambda: display_home_screen())
 # endregion
+
 class Fake_Window(tk.Frame):
     def __init__(self, parent, display_close=False, display_content=False, can_drag=False, *args, **kwargs):
         """
@@ -297,6 +398,7 @@ class Fake_Window(tk.Frame):
 
     # region Custom Windows
     def create_login_window(self):
+        global user_name
         # login window for game
         self.title_label.configure(text='Welcome to BLiSS95', font=('Modern DOS 9x16', 16))
         instruct_label = tk.Label(self.content_area, fg='black', bg="#C0C0C0", text='Type a user name and password to log on to BLiSS95.',
@@ -346,6 +448,7 @@ class Fake_Window(tk.Frame):
         user_list_btn.place(x=360, y=40)
         user_list_label.pack()
         user_list_label.bind("<Button-1>", show_all_users)
+
 
         self.window.place(x=750, y=420, width=520, height=160)
 
@@ -432,10 +535,17 @@ class Fake_Window(tk.Frame):
 root = tk.Tk()
 root.title("Welcome to BLiSS95")
 root.configure(bg='#008080')  # classic teal Win95 background
-root.minsize(width=500, height=310)
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
 
-login_window = Fake_Window(root, display_content=True).create_login_window()
+root.minsize(1280, 720)
+root.maxsize(1920, 1080)
+root.attributes("-fullscreen", True)
+
+
+#login_window = Fake_Window(root, display_content=True).create_login_window()
 # error = Fake_Window.create_error(root).user_error('asa')
 
+display_home_screen()
 
 root.mainloop()
