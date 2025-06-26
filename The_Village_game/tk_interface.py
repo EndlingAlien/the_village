@@ -14,94 +14,6 @@ import sys
 # When creating classmethods, win=self (from fake window), add to self variables in FakeWindow -> win.new_variable : func will have access
 # example: win.error_label in create_error -> user_error can use error_label as self.error_label
 
-
-def display_home_screen():
-    clear_screen(root)
-    
-    bliss_img = Image.open('images/bg_with_icons.jpg')
-    bliss_img = bliss_img.resize((1280, 720))
-    photo = ImageTk.PhotoImage(bliss_img)
-
-
-    bg_canvas = tk.Canvas(root, width=1280, height=720, highlightthickness=0)
-    bg_canvas.pack(fill="both", expand=True)
-
-    bg_canvas.create_image(0, 0, image=photo, anchor="nw")
-    bg_canvas.image = photo  # Keep a reference!
-
-    bottom_bar = tk.Frame(bg_canvas, width=4000, height=88, bg='#C0C0C0', highlightthickness=3, relief='raised')
-    bg_canvas.create_window(0, 725, window=bottom_bar)
-
-    time_label = tk.Label(bg_canvas, text=' 3:33 AM ', font=('Modern DOS 9x16', 20), fg='black', bg='#B3B3B3', highlightthickness=2, relief='sunken')
-    bg_canvas.create_window(1212, 701, window=time_label)
-
-    escape_label = tk.Label(bg_canvas,
-                            text=' ESCAPE ',
-                            font=('Modern DOS 9x16', 20),
-                            fg='black',
-                            bg='#B3B3B3',
-                            highlightthickness=2,
-                            relief='raised',
-                            highlightbackground='black')
-    bg_canvas.create_window(60, 701, window=escape_label, width=110, height=35)
-
-    # region Interactive Icons
-    log_icon = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    bg_canvas.move(log_icon, 260, 20)
-
-    archive_icon = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
-    bg_canvas.move(archive_icon, 485, 52)
-
-    game_icon = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
-    bg_canvas.move(game_icon, 350, 160)
-    # endregion
-    # region Non-interactive icons
-    # Add invisible rectangles on this canvas [where they will click, remove outline for it to work]
-    # region Icon
-    dos_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    tree_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    people_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    phone_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    comp_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    occult_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    prog_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    lan_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    folder_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    earth_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    cam_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    aol_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    trash_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='yellow')
-    # endregion
-    # region Icon Placement
-    bg_canvas.move(dos_rect, -23, -40)
-    bg_canvas.move(tree_rect, -23, 78)
-    bg_canvas.move(people_rect, -23, 180)
-    bg_canvas.move(phone_rect, -23, 290)
-    bg_canvas.move(comp_rect, -23, 415)
-    bg_canvas.move(occult_rect, -23, 530)
-    bg_canvas.move(prog_rect, 80, -40)
-    bg_canvas.move(lan_rect, 80, 78)
-    bg_canvas.move(folder_rect, 80, 180)
-    bg_canvas.move(earth_rect, 80, 290)
-    bg_canvas.move(cam_rect, 80, 415)
-    bg_canvas.move(aol_rect, 80, 530)
-    bg_canvas.move(trash_rect, 1122, 530)
-
-    # endregion
-
-    # endregion
-
-    def clicked_game(event):
-        game_window = Fake_Window(root, display_close=True, display_content=False).create_game_window()
-
-    def clicked_archive(event):
-        archive_window = Fake_Window(root, display_content=True, display_close=True).create_archive_window()
-
-    bg_canvas.tag_bind(game_icon, '<Button-1>', clicked_game)
-    bg_canvas.tag_bind(archive_icon, '<Button-1>', clicked_archive)
-
-
-
 # region Functions
 def get_users_from_db():
     result = db.MockDatabase().retrieve_all_users()
@@ -189,7 +101,7 @@ bsod_message = ("*** STOP: 0x0000DEAD (0xC0DEFEED, 0xBAADF00D, 0xDEADC0DE, 0xFEE
 # endregion
 
 
-def transition_to_home(event=None):
+def transition_to_home(entry_value, event=None):
     clear_screen(root)
     root.configure(bg='black')
 
@@ -225,7 +137,7 @@ def transition_to_home(event=None):
 
     root.after(7300, lambda: typewriter_tk_advanced(output_text, POST_ramble, char_delay=25, line_delay=380))
     root.after(46000, lambda: bsod_transition())
-    root.after(49200, lambda: load_home())
+    root.after(49200, lambda: load_home(entry_value))
 
 
 def bsod_transition():
@@ -239,7 +151,7 @@ def bsod_transition():
     post_label.pack(fill='both', expand=True)
 
 
-def load_home():
+def load_home(entry_value):
     clear_screen(root)
     root.configure(bg='black')
     welcome = tk.Label(root, text="Welcome Home", font=('Modern DOS 9x16', 20),
@@ -253,9 +165,105 @@ def load_home():
         root.after(delay * (i + 1), lambda c=color: root.configure(bg=c))
 
     root.after(6300, lambda: welcome.pack(fill='both', expand=True))
-    root.after(7000, lambda: display_home_screen())
+    root.after(7000, lambda: display_home_screen(entry_value))
 
 
+def display_home_screen(entry_value):
+    clear_screen(root)
+    user_name = entry_value
+    print(user_name)
+
+    bliss_img = Image.open('images/bg_with_icons.jpg')
+    bliss_img = bliss_img.resize((1280, 720))
+    photo = ImageTk.PhotoImage(bliss_img)
+
+    # region BG Canvas
+    bg_canvas = tk.Canvas(root, width=1280, height=720, highlightthickness=0)
+    bg_canvas.pack(fill="both", expand=True)
+
+    bg_canvas.create_image(0, 0, image=photo, anchor="nw")
+    bg_canvas.image = photo  # Keep a reference!
+
+    bottom_bar = tk.Frame(bg_canvas, width=4000, height=88, bg='#C0C0C0', highlightthickness=3, relief='raised')
+    bg_canvas.create_window(0, 725, window=bottom_bar)
+
+    time_label = tk.Label(bg_canvas, text=' 3:33 AM ', font=('Modern DOS 9x16', 20), fg='black', bg='#B3B3B3', highlightthickness=2, relief='sunken')
+    bg_canvas.create_window(1212, 701, window=time_label)
+    # endregion
+
+    escape_label = tk.Label(bg_canvas,
+                            text=' ESCAPE ',
+                            font=('Modern DOS 9x16', 20),
+                            fg='black',
+                            bg='#B3B3B3',
+                            highlightthickness=2,
+                            relief='raised',
+                            highlightbackground='black')
+    bg_canvas.create_window(60, 701, window=escape_label, width=110, height=35)
+    escape_label.bind("<Button-1>", lambda e: Fake_Window(root).exit_game())
+
+    # region Interactive Icons
+    log_icon = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    bg_canvas.move(log_icon, 260, 20)
+
+    archive_icon = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    bg_canvas.move(archive_icon, 485, 52)
+
+    game_icon = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    bg_canvas.move(game_icon, 350, 160)
+
+    def clicked_game(event):
+        pass
+        # Todo: Load game stuff here
+        #m.user_name = entry_value give main.py the user_name
+        game_window = Fake_Window(root, display_close=True, display_content=False).create_game_window()
+
+    def clicked_archive(event):
+        archive_window = Fake_Window(root, display_content=True, display_close=True).create_archive_window()
+
+    def clicked_log(event):
+        log_window = Fake_Window(root, display_content=True, display_close=True).create_log_window(entry_value)
+
+    bg_canvas.tag_bind(game_icon, '<Button-1>', clicked_game)
+    bg_canvas.tag_bind(archive_icon, '<Button-1>', clicked_archive)
+    bg_canvas.tag_bind(log_icon, '<Button-1>', clicked_log)
+    # endregion
+    # TODO:  Make small fun windows at some point in future version, *NON-ACTIVE FOR NOW*
+    # region Non-interactive icons
+    # Add invisible rectangles on this canvas [where they will click, remove outline for it to work]
+    # region Icon
+    dos_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    tree_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    people_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    phone_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    comp_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    occult_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    prog_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    lan_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    folder_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    earth_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    cam_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    aol_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    trash_rect = bg_canvas.create_rectangle(50, 50, 120, 120, fill='', outline='')
+    # endregion
+    # region Icon Placement
+    bg_canvas.move(dos_rect, -23, -40)
+    bg_canvas.move(tree_rect, -23, 78)
+    bg_canvas.move(people_rect, -23, 180)
+    bg_canvas.move(phone_rect, -23, 290)
+    bg_canvas.move(comp_rect, -23, 415)
+    bg_canvas.move(occult_rect, -23, 530)
+    bg_canvas.move(prog_rect, 80, -40)
+    bg_canvas.move(lan_rect, 80, 78)
+    bg_canvas.move(folder_rect, 80, 180)
+    bg_canvas.move(earth_rect, 80, 290)
+    bg_canvas.move(cam_rect, 80, 415)
+    bg_canvas.move(aol_rect, 80, 530)
+    bg_canvas.move(trash_rect, 1122, 530)
+
+    # endregion
+
+    # endregion
 # endregion
 
 class Fake_Window(tk.Frame):
@@ -330,22 +338,23 @@ class Fake_Window(tk.Frame):
         win.error_canvas = tk.Canvas(win.window, bg='#C0C0C0', highlightthickness=0)
         win.error_canvas.pack(fill='both', expand=True)
 
-        # Red angled bars
+        # Red-angled bars
         for i in range(0, 400, 20):
             win.error_canvas.create_line(i, -5, i - 100, 230, fill='#b8272c', width=6)
 
         # Error message area
         win.error_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', bd=2, highlightbackground='black', highlightthickness=2)
-        win.error_canvas.create_window(20, 20, window=win.error_frame, anchor='nw', width=200, height=60)
+        win.error_canvas.create_window(13, 10, window=win.error_frame, anchor='nw', width=220, height=75)
 
         win.error_label = tk.Label(
             win.error_frame,
             text='error message',
             bg='#C0C0C0',
             fg='black',
-            font=('Modern DOS 9x16', 13)
+            font=('Modern DOS 9x16', 13),
+            wrap=180
         )
-        win.error_label.pack(padx=10, pady=10)
+        win.error_label.pack(padx=5, pady=5)
 
         # "Yes" button
         yes_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
@@ -376,9 +385,10 @@ class Fake_Window(tk.Frame):
         win.title_label.configure(text='Title text', bg='#F2B914', fg='black')
         win.title_bar.configure(bg='#F2B914')
         win.warning_label = tk.Label(win.window,
-                                     text='You can fit 15 words\nin the space of this\npop up box word word',
+                                     text='You can fit 15 words in the space of this pop up box word word',
                                      font=('Modern DOS 9x16', 15),
-                                     bg='#C0C0C0')
+                                     bg='#C0C0C0',
+                                     wraplength=200)
         win.warning_label.pack(pady=5)
 
         btn_frame = tk.Frame(win.window, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
@@ -483,7 +493,7 @@ class Fake_Window(tk.Frame):
 
         user_choice_label = tk.Label(choices_frame, text='', font=('Modern DOS 9x16', 15), bg='black', fg='white')
         user_choice_label.pack(side='left', anchor='n')
-        
+
         #region Funcs
         def on_enter(event):
             event.widget.configure(bg='red')
@@ -498,7 +508,7 @@ class Fake_Window(tk.Frame):
             event.widget.configure(bg='black')
             event.widget.configure(fg='green')
         #endregion
-        
+
         confirm_choice_frame = tk.Frame(choices_frame, bg='black')
         confirm_choice_frame.place(x=100, y=170, width=100, height=24)
 
@@ -555,13 +565,13 @@ class Fake_Window(tk.Frame):
         dialogue_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         dialogue_frame.place(x=300, y=360, width=593, height=153)
         # TODO plugin dialogue/follow_up/locked_text as text here
-        dialogue_box = tk.Label(dialogue_frame,
-                            text="You decide to accept the rancher's offer and follow him inside. He leads you to a small dining table and hands you a drink, before promptly entering the kitchen to prep some food.",
+        self.dialogue_box = tk.Label(dialogue_frame,
+                            text='dialogue goes here',
                             bg="black", fg="white",
                             font=('Modern DOS 9x16', 17),
                             wraplength=550,
                             justify="left")
-        dialogue_box.pack()
+        self.dialogue_box.pack()
         #endregion
 
     def create_archive_window(self):
@@ -696,6 +706,37 @@ class Fake_Window(tk.Frame):
         lore_art.config(state="disabled")
         lore_art.pack()
 
+    def create_log_window(self, entry_value):
+        self.window.place(x=350, y=100, width=600, height=300)
+        self.title_label.configure(text=f"{entry_value.capitalize()}'s_History")
+        self.content_area.configure(bg='black')
+
+        title_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
+        title_frame.place(x=2, y=35, width=587)
+        title_label = tk.Label(title_frame, text='Review past transgressions:', font=('Modern DOS 9x16', 26), bg='black', fg='white', height=2)
+        title_label.pack()
+
+        runs_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
+        runs_frame.place(x=2, y=98, width=587, height=193)
+
+        runs_listbox = tk.Listbox(runs_frame,
+                                    activestyle='none',
+                                    height=8,
+                                    width=50,
+                                    font=('Modern DOS 9x16', 20),
+                                    justify='center',
+                                    bg='black',
+                                    fg='white',
+                                    selectbackground='red',
+                                    selectforeground='black')
+
+        # TODO: Where you plugin options, from main.py
+        runs = ['9/12/2025 - Stupid Archetype', '10/28/2025 - Timid Archetype', '11/2/2025 - Observant Archetype']  # For testing purposes
+
+        for item in runs:
+            runs_listbox.insert(runs.index(item), item)
+
+        runs_listbox.pack(pady=10)
 
     def create_login_window(self):
         # login window for game
@@ -725,7 +766,7 @@ class Fake_Window(tk.Frame):
                 Fake_Window.create_pop_up(root).invalid_name_pop()
                 return
 
-            # Check if password is empty or too short
+            # Check if the password is empty or too short
             if not password.strip() or len(password) < 4:
                 Fake_Window.create_pop_up(root).invalid_pass_pop()
                 return
@@ -760,7 +801,7 @@ class Fake_Window(tk.Frame):
             self.yes_btn_label.configure(text="Ready")
             self.no_btn_label.configure(text="Wait")
             root.configure(bg='#008080')
-            self.yes_btn_label.bind("<Button-1>", lambda e: transition_to_home())
+            self.yes_btn_label.bind("<Button-1>", lambda e: transition_to_home(entry_value))
             self.no_btn_label.bind("<Button-1>", no_again)
 
         def pressed_no(event=None):
@@ -812,7 +853,7 @@ class Fake_Window(tk.Frame):
     # region Pop-Ups
     def invalid_name_pop(self):
         self.title_label.configure(text="Watchers Do Not Approve", font=('Modern DOS 9x16', 13))
-        self.warning_label.configure(text='You have entered either:\nnothing, or unique symbols.\nTell us your name.')
+        self.warning_label.configure(text='You have entered either:\nnothing or unique symbols.\nTell us your name.')
         x, y = self.random_x_y()
         self.window.place(x=x, y=y, width=230, height=145)
 
@@ -825,8 +866,55 @@ class Fake_Window(tk.Frame):
     def user_login_pop(self, entry_value):
         self.title_label.configure(text=f"Welcome back, {entry_value.capitalize()}.", font=('Modern DOS 9x16', 13))
         self.warning_label.configure(text="The village watches.\nThe gates open.\nYour journey begins.")
-        self.btn_label.bind("<Button-1>", lambda e: transition_to_home())
+        self.btn_label.bind("<Button-1>", lambda e: transition_to_home(entry_value))
         self.window.place(x=500, y=350, width=230, height=145)
+
+    def start_creepy_popup_sequence(self):
+
+        #region Pop-ups
+        def popup_one():
+            pop_one = Fake_Window.create_pop_up(root)
+            pop_one.title_label.configure(text="Remain in Session")
+            pop_one.warning_label.configure(text="We need more from you. Just a little longer.")
+            x, y = self.random_x_y()
+            pop_one.window.place(x=x, y=y)
+
+        def popup_two():
+            pop_two = Fake_Window.create_pop_up(root)
+            pop_two.title_label.configure(text="Stay with us")
+            pop_two.warning_label.configure(text="Why would you want to leave?")
+            x, y = self.random_x_y()
+            pop_two.window.place(x=x, y=y)
+
+        def popup_three():
+            pop_three = Fake_Window.create_pop_up(root)
+            pop_three.title_label.configure(text="The Study Continues")
+            pop_three.warning_label.configure(text="We're still watching. Logging your reactions. Please don't interfere.")
+            x, y = self.random_x_y()
+            pop_three.window.place(x=x, y=y)
+
+        def popup_four():
+            pop_four = Fake_Window.create_pop_up(root)
+            pop_four.title_label.configure(text="Don’t Close the Gate")
+            pop_four.warning_label.configure(text="Closing now may corrupt your data. Or your outcome. Or you.")
+            x, y = self.random_x_y()
+            pop_four.window.place(x=x, y=y)
+
+        def popup_five():
+            pop_five = Fake_Window.create_pop_up(root)
+            pop_five.title_label.configure(text="Still Observing Patterns", font=('Modern DOS 9x16', 14))
+            pop_five.warning_label.configure(text="The gate opens only when you're ready. You're not.")
+            x, y = self.random_x_y()
+            pop_five.window.place(x=x, y=y)
+
+        #endregion
+
+        # Sequence with delays
+        root.after(0, popup_one)
+        root.after(2000, popup_two)
+        root.after(4000, popup_three)
+        root.after(6000, popup_four)
+        root.after(8000, popup_five)
 
     # endregion
     # endregion
@@ -835,6 +923,24 @@ class Fake_Window(tk.Frame):
         root.configure(bg='#008080')
         # destroys the current window (the one clicked)
         self.window.destroy()
+
+    def exit_game(self):
+        self.start_creepy_popup_sequence()
+        def create_exit_win():
+            exit_win = Fake_Window.create_error(root)
+            exit_win.title_label.configure(text="Closure Attempt Detected")
+            exit_win.error_label.configure(text="Observation will end. But we won’t forget. Are you absolutely certain you're ready?")
+
+            def pressed_yes(event=None):
+                root.destroy()
+
+            def pressed_no(event=None):
+                exit_win.no_btn_label.bind("<Button-1>", lambda e: exit_win.close_window())
+
+            exit_win.yes_btn_label.bind("<Button-1>", pressed_yes)
+            exit_win.no_btn_label.bind("<Button-1>", pressed_no)
+
+        root.after(10000, create_exit_win)
 
     def random_x_y(self):
         x = random.randint(360, 800)  # Horizontal range
@@ -852,6 +958,6 @@ root.resizable(False, False)
 
 #login_window = Fake_Window(root, display_content=True).create_login_window()
 
-display_home_screen()
-#test_win = Fake_Window(root, display_content=True, display_close=True).create_archive_window()
+display_home_screen('Asa')
+#test_win = Fake_Window(root, display_content=True, display_close=True).create_log_window()
 root.mainloop()

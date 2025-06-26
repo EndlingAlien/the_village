@@ -541,7 +541,8 @@ def display_dialogue_and_choices(active_block, choices):
     :param choices: The full choices' dict.
     """
     dialogue = active_block.get('dialogue') or ''
-    print(dialogue)
+    #print(dialogue)
+    choice_list = []
 
     for key in choices:
         should_display = choices[key].get('is_displayed', True)
@@ -586,7 +587,11 @@ def display_dialogue_and_choices(active_block, choices):
 
         # Display unlocked or revealed choice
         if should_display:
-            print(f"{choices[key]['id']}: {choices[key]['Text']}")
+            choice_list.append(choices[key]['Text'])
+
+            #print(f"{choices[key]['id']}: {choices[key]['Text']}")
+
+
 
 
 def choice_selection_with_checks(valid_input, choices, x, checkpoint_data):
@@ -897,4 +902,4 @@ user_name = final_data['user_name']
 # endregion
 
 cond_data = initialize_game_conditions(condition_dict)
-load_game_info(start_scene, 'start', 'intro')
+#load_game_info(start_scene, 'start', 'intro')
