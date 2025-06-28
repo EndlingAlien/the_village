@@ -12,6 +12,7 @@ import random as r
 import analysis as a
 import game_db as db
 
+
 # TODO: Menu should let you read what full desc in final version [endings]
 
 # region Variables
@@ -127,12 +128,9 @@ key_items = {
     }
 }
 
-# Identifiers used to determine if a checkpoint is a test
-test_checkpoint_names = ['trust_test', 'faith_test', 'intuition_test']
+test_session = {}
 
 # Dictionary that holds all stats and game state for the player
-# TODO: use this user_name var for username insert into db
-user_name = None
 player_data = {
     "explore_flag": {
         "snooped_house": False,
@@ -249,7 +247,7 @@ def reset_game_data():
         "cond_data": {}
     }
 
-
+#TODO: Need to update for gui
 # region Test Functions
 
 # region Load Test
@@ -472,49 +470,31 @@ def calculate_intuition_result(test_answers, test_choices):
 
 # region Main Game Logic
 # Ordered by execution flow for improved readability
-
-def load_game_info(scene, scene_name, checkpoint_key):
-    """
-    Handles scene progression logic during gameplay.
-    Loads dialogue and choices from the given checkpoint, handles player input, and applies all necessary conditions
-    before continuing to the next part of the game.
-    :param scene: Dictionary containing the scene's structure and checkpoints.
-    :param scene_name: Key that identifies the scene in global scene_dict.
-    :param checkpoint_key: The checkpoint tag used to retrieve dialogue/choice data from the scene.
-    """
+def load_game_info_gui(scene, scene_name, checkpoint_key, choice_id=None):
     # Setup block: loads the conditionally appropriate dialogue and options
-    return_dict = initial_setup(scene_name, scene, checkpoint_key)
+    return_dict = initial_setup_gui(scene_name, scene, checkpoint_key)
     active_block = return_dict['active_block']
     choices = return_dict['choices']
     checkpoint_data = return_dict['checkpoint_data']
 
-    # Display the current dialogue and available choices
-    display_dialogue_and_choices(active_block, choices)
-
-    # region Player Input Loop
-    valid_input = False
-    while not valid_input:
-        try:
-            x = int(input("Choose an option: "))
-
-            # Run conditional logic to evaluate player's choice
-            valid_input = choice_selection_with_checks(valid_input, choices, x, checkpoint_data)
-
-            if not valid_input:
-                print("Invalid choice. Try again.")
-        except ValueError:
-            print("Please enter a number.")
-    # endregion
+    # Get the current dialogue and available choices
+    dialogue, choices_list = get_dialogue_and_choices(active_block, choices)
+    # print(f"main.py has dialogue: {dialogue}")
+    # print(f"main.py has choices: {choices_list}")
+    if choice_id is None:
+        return {
+            'dialogue': dialogue,
+            'choices': choices_list,
+            'follow_text': None,
+            'next_cp': None,
+            'next_scene': None
+        }
+    else:
+        result = process_choice_with_checks(choice_id, choices, checkpoint_data)
+        return result
 
 
-def initial_setup(scene_name, scene, checkpoint_key):
-    """
-    Determines which block of a scene to load, accounting for any conditional logic.
-    :param scene_name: Key name of the current scene.
-    :param scene: Scene dictionary.
-    :param checkpoint_key: Which part of the scene to access.
-    :return: Dictionary of the current active block, choices, and full checkpoint data.
-    """
+def initial_setup_gui(scene_name, scene, checkpoint_key):
     vars_return_dict = {'active_block': {}, 'choices': {}, 'checkpoint_data': {}}
     current_cond = cond_data.get(scene_name, None)
     checkpoint_data = scene.get(checkpoint_key, {})
@@ -533,15 +513,8 @@ def initial_setup(scene_name, scene, checkpoint_key):
     return vars_return_dict
 
 
-def display_dialogue_and_choices(active_block, choices):
-    """
-    Prints the dialogue and available choices, dynamically revealing locked options
-    based on inventory or exploration flags.
-    :param active_block: The dictionary with dialogue and choice info.
-    :param choices: The full choices' dict.
-    """
+def get_dialogue_and_choices(active_block, choices):
     dialogue = active_block.get('dialogue') or ''
-    #print(dialogue)
     choice_list = []
 
     for key in choices:
@@ -588,56 +561,37 @@ def display_dialogue_and_choices(active_block, choices):
         # Display unlocked or revealed choice
         if should_display:
             choice_list.append(choices[key]['Text'])
-
-            #print(f"{choices[key]['id']}: {choices[key]['Text']}")
-
+    return dialogue, choice_list
 
 
-
-def choice_selection_with_checks(valid_input, choices, x, checkpoint_data):
-    """
-    Evaluates the player's choice input, performs the necessary checks,
-    and routes to the appropriate outcome.
-    :param valid_input: Boolean tracking if input is valid.
-    :param choices: Dictionary of current choices.
-    :param x: Player's input (int).
-    :param checkpoint_data: Full block data for the current checkpoint.
-    :return: True if a valid input and transition occurred, False otherwise.
-    """
-    for main_key in choices:
-        if x == choices[main_key]['id']:
-            if 'locked' in choices[main_key]:
-                locked_info = choices[main_key]['locked']
-                allow_progress = False  # Assume blocked
-
-                # Run checks on required flags and inventory
-                allow_progress = key_checks(allow_progress, locked_info)
+def process_choice_with_checks(choice_id, choices, checkpoint_data):
+    for key, choice in choices.items():
+        if choice_id == choice['id']:
+            # Check if choice is locked
+            if 'locked' in choice:
+                locked_info = choice['locked']
+                allow_progress = key_checks_gui(False, locked_info)
 
                 # Follow the correct branch
                 if allow_progress:
-                    progress_allowed(choices, main_key, locked_info, checkpoint_data, x)
+                    print('Progress allowed')
+                    result = progress_allowed_gui(choice, locked_info, choice_id, checkpoint_data)
                 else:
-                    progress_locked(locked_info)
-                valid_input = True
+                    print('Progress not allowed')
+                    result = progress_locked_gui(locked_info)
                 break
             else:
                 # Option is not locked — proceed
-                not_locked_display(choices, main_key, checkpoint_data, x)
-                valid_input = True
+                result = not_locked_display_gui(choice, checkpoint_data, choice_id)
                 break
-    return valid_input
+    return result
 
 
-def key_checks(allow_progress, locked_info):
-    """
-    Performs flag and inventory validation for locked choices.
-    :param allow_progress: Boolean tracking current progress status.
-    :param locked_info: Dict of lock conditions.
-    :return: Updated boolean for progress permission.
-    """
-
+def key_checks_gui(allow_progress, locked_info):
+    print(f'First key check status before: {allow_progress}')
     # Check if there is an explore_flag key, if so, does the player meet the requirements to select?
     if 'explore_flag' in locked_info:
+        print('First key check: choice has a explore_flag')
         flags = locked_info['explore_flag']
         for key in flags:
             if key in player_data['explore_flag']:
@@ -646,47 +600,46 @@ def key_checks(allow_progress, locked_info):
 
     # Check if there is an inventory_need key, and the player has everything required
     if 'inventory_need' in locked_info:
+        print('First key check: choice has a inventory_need')
         flags = locked_info['inventory_need']
         for key in flags:
             if key in player_data['inventory']:
                 if flags[key] == player_data['inventory'][key]:
                     allow_progress = True
-
+    print(f'First key check status after: {allow_progress}')
     return allow_progress
 
 
-def progress_allowed(choices, main_key, locked_info, checkpoint_data, x):
-    """
-    Handles valid transitions once conditions are met, including applying flags,
-    inventory updates, and choice tagging.
-    """
-    follow_text = choices[main_key].get('follow_up_text') or ''
-    next_cp = choices[main_key]['next_checkpoint']
-    next_scene = choices[main_key]['checkpoint_scene']
-    scene_name = scene_dict[next_scene]
-    print(follow_text)
+def progress_allowed_gui(choice, locked_info, choice_id, checkpoint_data):
+    follow_text = choice.get('follow_up_text') or 'ERROR progress_allowed_gui: Could not find follow up text'
+    next_cp = choice.get('next_checkpoint')
+    next_scene = choice.get('checkpoint_scene')
 
     # Apply flags and inventory changes
-    second_key_check(choices, main_key, locked_info, checkpoint_data, x)
+    second_key_check_gui(choice, locked_info, checkpoint_data, choice_id)
 
-    # Move to the appropriate next function
-    if next_cp in test_checkpoint_names:
-        load_test(scene_name, next_cp)
-    elif '_ending' in next_cp:
-        load_ending(scene_name, next_cp)
-    else:
-        load_game_info(scene_name, next_scene, next_cp)
+    # TODO If its a test or ending, redirect
+    if '_test' in next_cp:
+        print(f"Loading test")
+
+    if '_ending' in next_cp:
+        return ending_handler(next_cp, next_scene)
+
+    return {
+        'dialogue': None,
+        'choices': [],
+        'follow_text': follow_text,
+        'next_cp': next_cp,
+        'next_scene': next_scene,
+        'ending': False
+    }
 
 
-def second_key_check(choices, main_key, locked_info, checkpoint_data, x):
-    """
-    Performs follow-up updates: toggles exploration flags, gives inventory items,
-    and record choice tags for analysis.
-    """
-    if 'has_been' in choices[main_key]:
-        if choices[main_key]['has_been'] in player_data['explore_flag']:
+def second_key_check_gui(choice, locked_info, checkpoint_data, choice_id):
+    if 'has_been' in choice:
+        if choice['has_been'] in player_data['explore_flag']:
             player_flags = player_data['explore_flag']
-            has_key = choices[main_key]['has_been']
+            has_key = choice['has_been']
             # Reverse explore_flag so player can't revisit
             player_data['explore_flag'][has_key] = not player_flags[has_key]
 
@@ -699,104 +652,106 @@ def second_key_check(choices, main_key, locked_info, checkpoint_data, x):
     # Add player game choice with current tag to player_data
     if 'tag' in checkpoint_data:
         tag = checkpoint_data['tag']
-        player_data['choices'][tag] = x
-    elif 'tag' in choices[main_key]:
-        tag = choices[main_key]['tag']
-        player_data['choices'][tag] = x
+        player_data['choices'][tag] = choice_id
+    elif 'tag' in choice:
+        tag = choice['tag']
+        player_data['choices'][tag] = choice_id
 
 
-def progress_locked(locked_info):
-    """
-    Handles transitions when conditions aren't met.
-    Displays locked message and routes to locked scene checkpoint.
-    """
-    locked_dialogue = locked_info['locked_text']
-    next_cp = locked_info['locked_checkpoint']
-    next_scene = locked_info['locked_scene']
-    scene_name = scene_dict[next_scene]
-    print(locked_dialogue)
-    load_game_info(scene_name, next_scene, next_cp)
+def progress_locked_gui(locked_info):
+    locked_dialogue = locked_info.get('locked_text') or 'ERROR progress_locked_gui: Could not find locked text'
+    next_cp = locked_info.get('locked_checkpoint')
+    next_scene = locked_info.get('locked_scene')
+
+    return {
+        'dialogue': None,
+        'choices': [],
+        'follow_text': None,
+        'locked_text': locked_dialogue,
+        'next_cp': next_cp,
+        'next_scene': next_scene,
+        'ending': False
+    }
 
 
-def not_locked_display(choices, main_key, checkpoint_data, x):
-    """
-    Displays standard options (not locked), saves choice tags,
-    and moves to the next checkpoint or ending.
-    """
-    follow_text = choices[main_key].get('follow_up_text') or ''
-    next_cp = choices[main_key]['next_checkpoint']
-    next_scene = choices[main_key]['checkpoint_scene']
-    scene_name = scene_dict[next_scene]
-    print(follow_text)
+def not_locked_display_gui(choice, checkpoint_data, choice_id):
+    follow_text = choice.get('follow_up_text') or 'ERROR progress_allowed_gui: Could not find follow up text'
+    next_cp = choice.get('next_checkpoint')
+    next_scene = choice.get('checkpoint_scene')
 
     # Add player game choice with current tag to player_data
     if 'tag' in checkpoint_data:
         tag = checkpoint_data['tag']
-        player_data['choices'][tag] = x
-    elif 'tag' in choices[main_key]:
-        tag = choices[main_key]['tag']
-        player_data['choices'][tag] = x
+        player_data['choices'][tag] = choice_id
+    elif 'tag' in choice:
+        tag = choice['tag']
+        player_data['choices'][tag] = choice_id
 
-    # Move to the appropriate next function
-    if next_cp in test_checkpoint_names:
-        load_test(scene_name, next_cp)
-    elif '_ending' in next_cp:
-        load_ending(scene_name, next_cp)
-    else:
-        load_game_info(scene_name, next_scene, next_cp)
+    # TODO If its a test or ending, redirect
+    if '_test' in next_cp:
+        print(f"Loading test")
+
+    if '_ending' in next_cp:
+        return ending_handler(next_cp, next_scene)
+
+    return {
+        'dialogue': None,
+        'choices': [],
+        'follow_text': follow_text,
+        'next_cp': next_cp,
+        'next_scene': next_scene,
+        'ending': False
+    }
 
 
 # endregion
 
 
-def load_ending(scene, checkpoint_key):
-    """
-    Loads the ending scene.
-    :param scene: What scene this ending is from.
-    :param checkpoint_key: The name of the checkpoint.
-    """
+def ending_handler(next_cp, next_scene):
+
     # Get the block of data associated with the ending checkpoint
-    active_block = scene.get(checkpoint_key)
-    dialogue = active_block.get('dialogue')
-    end_key = active_block.get('ending_key')
+    ending_block = scene_dict[next_scene][next_cp]
+    dialogue = ending_block.get('dialogue')
+    end_key = ending_block.get('ending_key')
 
-    # Check if there's a defined next checkpoint and scene to continue into
-    if active_block.get('next_checkpoint') and active_block.get('checkpoint_scene'):
-        # Grab the name of the next scene and checkpoint
-        scene_name = scene_dict[active_block.get('checkpoint_scene')]
-        cp_name = active_block.get('checkpoint_scene')
-        cp = active_block.get('next_checkpoint')
-
-        # Print the current dialogue to the screen
-        print(dialogue)
-
+    # TODO: Need to playtest this
+    # Not a 'true ending', player can continue game
+    if ending_block.get('next_checkpoint'):
         # Store the player's ending decision into the test condition dict
-        cond_data[cp_name] = end_key
+        cond_data[next_scene] = end_key
 
         # Save the ending result into the player stats
         player_data['ending_key'].append(end_key)
 
-        # Load the correct scene dictionary
-        scene = sc.return_scene(cp_name + '_scene_dict')
-
+        #Todo: If this doesnt work we could make a bool in the return dict that forces it to change/load any intros to that checkpoint
+        #Load the correct scene dictionary
+        scene = sc.return_scene(next_scene + '_scene_dict')
         # Modify the intro block to jump to post-test content
         scene['intro']['choices']['option_one']['next_checkpoint'] = 'after_test_start'
 
         # Check if this ending grants an item and update the inventory
-        if active_block.get('inventory_need'):
-            need = active_block['inventory_need']
+        if ending_block.get('inventory_need'):
+            need = ending_block['inventory_need']
             for key in need:
                 player_data['inventory'][key] = not player_data['inventory'][key]
 
-        # Load into the next scene and checkpoint
-        load_game_info(scene_name, cp_name, cp)
-
-    # Final dialogue print if no scene continuation is provided
-    print(dialogue)
-    # Save the ending result into the player stats
-    player_data['ending_key'].append(end_key)
-    # Game is over, configure data to insert into db
-    configure_final_data()
+        return {
+            'dialogue': None,
+            'choices': [],
+            'follow_text': None,
+            'next_cp': next_cp,
+            'next_scene': next_scene,
+            'ending': True
+        }
+    else:  # Is a 'true ending', player cant continue game
+        return {
+            'dialogue': dialogue,
+            'choices': [],
+            'follow_text': None,
+            'next_cp': None,
+            'next_scene': None,
+            'ending': True
+        }
 
 
 # region Database Functions
@@ -902,4 +857,3 @@ user_name = final_data['user_name']
 # endregion
 
 cond_data = initialize_game_conditions(condition_dict)
-#load_game_info(start_scene, 'start', 'intro')

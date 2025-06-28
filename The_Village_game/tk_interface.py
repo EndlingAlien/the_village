@@ -4,11 +4,7 @@ import game_db as db
 import re
 from PIL import Image, ImageTk
 import random
-import time
-import sys
-from tkinter import messagebox
-import time
-import sys
+from main import load_game_info_gui, scene_dict
 
 # TODO: REMINDER SO WE DONT MAKE THE SAME BUG!!!!!!!!!!!
 # When creating classmethods, win=self (from fake window), add to self variables in FakeWindow -> win.new_variable : func will have access
@@ -282,6 +278,11 @@ class Fake_Window(tk.Frame):
         self.display_content = display_content
         self.can_drag = can_drag
 
+        # For game window
+        self.current_scene_name = 'start'
+        self.current_checkpoint = 'intro'
+        self.scene_data = scene_dict[self.current_scene_name]
+
         # Window Base [Error Pop Up]
         # region Title Bar
         self.title_bar = tk.Frame(self.window, bg='#010881', relief='raised')
@@ -323,6 +324,7 @@ class Fake_Window(tk.Frame):
         # endregion
         # self.window.place(x=450, y=220, width=250, height=250)
 
+    #region Class Methods
     # Window Base [Error Pop-Up]
     @classmethod
     def create_error(cls, parent):
@@ -398,6 +400,7 @@ class Fake_Window(tk.Frame):
         win.btn_label.bind("<Button-1>", lambda e: win.close_window())
 
         return win
+    #endregion
 
     # region Custom Windows
     def create_game_window(self):
@@ -458,7 +461,7 @@ class Fake_Window(tk.Frame):
         choices_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         choices_frame.place(x=0, y=313, width=300, height=200)
 
-        choice_listbox = tk.Listbox(choices_frame,
+        self.choice_listbox = tk.Listbox(choices_frame,
                                     activestyle='none',
                                     height=6,
                                     width=30,
@@ -469,30 +472,14 @@ class Fake_Window(tk.Frame):
                                     selectbackground='red',
                                     selectforeground='black')
 
-        #TODO: Where you plugin options, from main.py
-        choices = ['Go Forward', 'Go Left', 'Go Right', 'Use the Vials', 'Use the Mask']  # For testing purposes
-
         def select_choice():
-            cs = choice_listbox.curselection()
-            # TODO: This is the users int choice for db *0 = 1, 1 = 2, 2 = 3, etc*
-            # cant force listbox to start at index 1
-            user_choice = cs[0]
-            for i in cs:
-                choice_name = choice_listbox.get(i)
-                print(f"Choice: {user_choice}:{choice_name}")  # For Testing purposes
-                user_choice_label.configure(text=choice_name)
+            cs = self.choice_listbox.curselection()
+            if not cs:
+                return None  # Or some default, but None is better
+            return cs[0] + 1  # +1 to match choice ids
 
-        for item in choices:
-            choice_listbox.insert(choices.index(item), item)
-
-        choice_listbox.pack(pady=10)
-        choice_listbox.bind("<<ListboxSelect>>", lambda e: select_choice())
-
-        check_choice_label = tk.Label(choices_frame, text="You've selected:", font=('Modern DOS 9x16', 15), bg='black', fg='white')
-        check_choice_label.pack(side='left', anchor='n')
-
-        user_choice_label = tk.Label(choices_frame, text='', font=('Modern DOS 9x16', 15), bg='black', fg='white')
-        user_choice_label.pack(side='left', anchor='n')
+        self.choice_listbox.pack(pady=10)
+        self.choice_listbox.bind("<<ListboxSelect>>", lambda e: select_choice())
 
         #region Funcs
         def on_enter(event):
@@ -507,6 +494,8 @@ class Fake_Window(tk.Frame):
         def clicked_choice(event):
             event.widget.configure(bg='black')
             event.widget.configure(fg='green')
+            user_choice = select_choice()
+            self.update_game_window(user_choice)
         #endregion
 
         confirm_choice_frame = tk.Frame(choices_frame, bg='black')
@@ -573,6 +562,7 @@ class Fake_Window(tk.Frame):
                             justify="left")
         self.dialogue_box.pack()
         #endregion
+        self.update_game_window()
 
     def create_archive_window(self):
         self.window.place(x=350, y=100, width=530, height=400)
@@ -946,6 +936,46 @@ class Fake_Window(tk.Frame):
         x = random.randint(360, 800)  # Horizontal range
         y = random.randint(200, 400)  # Vertical range
         return x, y
+
+    def update_game_window(self, choice_id=None):
+        result = load_game_info_gui(
+            self.scene_data,
+            self.current_scene_name,
+            self.current_checkpoint,
+            choice_id=choice_id
+        )
+
+        #TODO: Need check for tests
+
+        # Update choices listbox
+        self.choice_listbox.delete(0, tk.END)
+
+        def delayed_update():
+            self.current_scene_name = result['next_scene']
+            self.current_checkpoint = result['next_cp']
+            self.scene_data = scene_dict[self.current_scene_name]
+            self.update_game_window()
+
+        if result['choices']:
+            for choice in result['choices']:
+                self.choice_listbox.insert(tk.END, choice)
+
+
+        if result.get('ending'):
+            self.dialogue_box.config(text=f'Ending Achieved:\n{result['dialogue']}')
+            return
+        # Update dialogue box
+        if result['dialogue']:
+            self.dialogue_box.config(text=result['dialogue'])
+            return
+        #TODO: Update after() time to accommodate for follow_up/locked text
+        if result['follow_text']:
+            self.dialogue_box.config(text=result['follow_text'])
+            self.after(100, delayed_update)
+            return
+        if result['locked_text']:
+            self.dialogue_box.config(text=result['locked_text'])
+            self.after(200, delayed_update)
 
 
 root = tk.Tk()
