@@ -14,7 +14,7 @@ import game_db as db
 
 
 # TODO: Menu should let you read what full desc in final version [endings]
-
+test_index = None
 # region Variables
 db_instance = db.MockDatabase()
 # region Scene Dictionaries
@@ -247,7 +247,8 @@ def reset_game_data():
         "cond_data": {}
     }
 
-#TODO: Need to update for gui
+#TODO: LEGACY TEST FUNCTIONS
+# Need to update for gui
 # region Test Functions
 
 # region Load Test
@@ -481,13 +482,18 @@ def load_game_info_gui(scene, scene_name, checkpoint_key, choice_id=None):
     dialogue, choices_list = get_dialogue_and_choices(active_block, choices)
     # print(f"main.py has dialogue: {dialogue}")
     # print(f"main.py has choices: {choices_list}")
+    if '_test' in checkpoint_key:
+        print(f"Peekaboo i just put them boogers in my chain")
+        test_loop(checkpoint_data)
     if choice_id is None:
         return {
             'dialogue': dialogue,
             'choices': choices_list,
             'follow_text': None,
             'next_cp': None,
-            'next_scene': None
+            'next_scene': None,
+            'mode': 'game'
+
         }
     else:
         result = process_choice_with_checks(choice_id, choices, checkpoint_data)
@@ -631,7 +637,8 @@ def progress_allowed_gui(choice, locked_info, choice_id, checkpoint_data):
         'follow_text': follow_text,
         'next_cp': next_cp,
         'next_scene': next_scene,
-        'ending': False
+        'ending': False,
+        'mode': 'game'
     }
 
 
@@ -670,7 +677,8 @@ def progress_locked_gui(locked_info):
         'locked_text': locked_dialogue,
         'next_cp': next_cp,
         'next_scene': next_scene,
-        'ending': False
+        'ending': False,
+        'mode': 'game'
     }
 
 
@@ -700,7 +708,8 @@ def not_locked_display_gui(choice, checkpoint_data, choice_id):
         'follow_text': follow_text,
         'next_cp': next_cp,
         'next_scene': next_scene,
-        'ending': False
+        'ending': False,
+        'mode': 'game'
     }
 
 
@@ -741,7 +750,8 @@ def ending_handler(next_cp, next_scene):
             'follow_text': None,
             'next_cp': next_cp,
             'next_scene': next_scene,
-            'ending': True
+            'ending': True,
+            'mode': 'game'
         }
     else:  # Is a 'true ending', player cant continue game
         return {
@@ -750,9 +760,24 @@ def ending_handler(next_cp, next_scene):
             'follow_text': None,
             'next_cp': None,
             'next_scene': None,
-            'ending': True
+            'ending': True,
+            'mode': 'game'
         }
 
+
+def update_inventory():
+    tools_list = ['key', 'screwdriver', 'hammer', 'knife']
+    docs_list = ['decoder', 'bible', 'letter']
+    other_list = ['mask']
+    vials_list = ['red_vial', 'blue_vial', 'green_vial']
+
+    #Update gui list with player list
+    player_tools = [tool for tool in tools_list if player_data['inventory'].get(tool)]
+    player_docs = [doc for doc in docs_list if player_data['inventory'].get(doc)]
+    player_other = [item for item in other_list if player_data['inventory'].get(item)]
+    player_vials = [vial for vial in vials_list if player_data['inventory'].get(vial)]
+
+    return player_tools, player_docs, player_other, player_vials
 
 # region Database Functions
 
@@ -857,3 +882,18 @@ user_name = final_data['user_name']
 # endregion
 
 cond_data = initialize_game_conditions(condition_dict)
+
+#TODO: TESTING AREA ________________________
+
+def test_loop(checkpoint_data):
+    global test_index
+    current_test_questions = {}
+    player_test_answers = {}
+    print(f'Current test data: {checkpoint_data}')
+    for key in checkpoint_data:
+        tag = checkpoint_data[key]['tag']
+        player_test_answers[tag] = None
+        current_test_questions[key] = False
+
+    print(f"player test: {player_test_answers}")
+    print(f"current test: {current_test_questions}")

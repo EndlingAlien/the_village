@@ -4,7 +4,8 @@ import game_db as db
 import re
 from PIL import Image, ImageTk
 import random
-from main import load_game_info_gui, scene_dict
+from main import load_game_info_gui, scene_dict, update_inventory
+
 
 # TODO: REMINDER SO WE DONT MAKE THE SAME BUG!!!!!!!!!!!
 # When creating classmethods, win=self (from fake window), add to self variables in FakeWindow -> win.new_variable : func will have access
@@ -87,11 +88,12 @@ POST_ramble = (
     "\n\n> GLORY TO THE VILLAGE\n> GLORY TO THE BEAMS\n> GLORY TO THE MEAT\n\n> END OF LINE _\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 )
 
-bsod_message = ("*** STOP: 0x0000DEAD (0xC0DEFEED, 0xBAADF00D, 0xDEADC0DE, 0xFEEDFACE)\n\nA critical error has occurred in the BLiSS95 Kernel.\n"
-                "The system has encountered an unrecoverable fault in the Cultic Process Handler.\n\nMemory corruption detected in sector 13:\n"
-                "Unable to verify ritual integrity.\nThe Village Protocol has been breached.\n\n>>> DO NOT ATTEMPT TO RESTART <<<\n\n"
-                "If you see this screen, your presence is already logged.\nContact your Administrator of the Beams for assistance.\n"
-                "Press any key to initiate the Rite of Renewal...\n\n*** SYSTEM HALTED ***")
+bsod_message = (
+    "*** STOP: 0x0000DEAD (0xC0DEFEED, 0xBAADF00D, 0xDEADC0DE, 0xFEEDFACE)\n\nA critical error has occurred in the BLiSS95 Kernel.\n"
+    "The system has encountered an unrecoverable fault in the Cultic Process Handler.\n\nMemory corruption detected in sector 13:\n"
+    "Unable to verify ritual integrity.\nThe Village Protocol has been breached.\n\n>>> DO NOT ATTEMPT TO RESTART <<<\n\n"
+    "If you see this screen, your presence is already logged.\nContact your Administrator of the Beams for assistance.\n"
+    "Press any key to initiate the Rite of Renewal...\n\n*** SYSTEM HALTED ***")
 
 
 # endregion
@@ -126,9 +128,12 @@ def transition_to_home(entry_value, event=None):
     output_text.pack(fill='both', expand=True, anchor='n', pady=0)
     output_text.configure(state='disabled')
 
-    root.after(1500, lambda: post_label.configure(text="BLiSS95 Boot v2.3\nPerforming Memory Check... OK\nLoading Archetype Protocol... ██▒▒▒▒▒▒▒▒"))
-    root.after(3000, lambda: post_label.configure(text="BLiSS95 Boot v2.3\nPerforming Memory Check... OK\nLoading Archetype Protocol... █████▒▒▒▒▒"))
-    root.after(6000, lambda: post_label.configure(text="BLiSS95 Boot v2.3\nPerforming Memory Check... OK\nLoading Archetype Protocol... █████████▒"))
+    root.after(1500, lambda: post_label.configure(
+        text="BLiSS95 Boot v2.3\nPerforming Memory Check... OK\nLoading Archetype Protocol... ██▒▒▒▒▒▒▒▒"))
+    root.after(3000, lambda: post_label.configure(
+        text="BLiSS95 Boot v2.3\nPerforming Memory Check... OK\nLoading Archetype Protocol... █████▒▒▒▒▒"))
+    root.after(6000, lambda: post_label.configure(
+        text="BLiSS95 Boot v2.3\nPerforming Memory Check... OK\nLoading Archetype Protocol... █████████▒"))
     root.after(6300, lambda: post_label.destroy())
 
     root.after(7300, lambda: typewriter_tk_advanced(output_text, POST_ramble, char_delay=25, line_delay=380))
@@ -183,7 +188,8 @@ def display_home_screen(entry_value):
     bottom_bar = tk.Frame(bg_canvas, width=4000, height=88, bg='#C0C0C0', highlightthickness=3, relief='raised')
     bg_canvas.create_window(0, 725, window=bottom_bar)
 
-    time_label = tk.Label(bg_canvas, text=' 3:33 AM ', font=('Modern DOS 9x16', 20), fg='black', bg='#B3B3B3', highlightthickness=2, relief='sunken')
+    time_label = tk.Label(bg_canvas, text=' 3:33 AM ', font=('Modern DOS 9x16', 20), fg='black', bg='#B3B3B3',
+                          highlightthickness=2, relief='sunken')
     bg_canvas.create_window(1212, 701, window=time_label)
     # endregion
 
@@ -211,7 +217,7 @@ def display_home_screen(entry_value):
     def clicked_game(event):
         pass
         # Todo: Load game stuff here
-        #m.user_name = entry_value give main.py the user_name
+        # m.user_name = entry_value give main.py the user_name
         game_window = Fake_Window(root, display_close=True, display_content=False).create_game_window()
 
     def clicked_archive(event):
@@ -260,6 +266,8 @@ def display_home_screen(entry_value):
     # endregion
 
     # endregion
+
+
 # endregion
 
 class Fake_Window(tk.Frame):
@@ -272,22 +280,25 @@ class Fake_Window(tk.Frame):
         :param kwargs: Kwargs for tk
         """
         super().__init__(parent, *args, **kwargs)
-        self.window = tk.Frame(parent, bg="#C0C0C0", bd=2, relief="raised", highlightthickness=2, highlightbackground='black')
+        self.window = tk.Frame(parent, bg="#C0C0C0", bd=2, relief="raised", highlightthickness=2,
+                               highlightbackground='black')
 
         self.display_close = display_close
         self.display_content = display_content
         self.can_drag = can_drag
 
         # For game window
-        self.current_scene_name = 'start'
-        self.current_checkpoint = 'intro'
+        self.current_scene_name = 'swamp'
+        self.current_checkpoint = 'approach_cube'
         self.scene_data = scene_dict[self.current_scene_name]
 
         # Window Base [Error Pop Up]
         # region Title Bar
         self.title_bar = tk.Frame(self.window, bg='#010881', relief='raised')
-        self.title_label = tk.Label(self.title_bar, text='title text', fg="white", bg="#010881", font=('Modern DOS 9x16', 16))
-        self.close_btn = tk.Frame(self.title_bar, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
+        self.title_label = tk.Label(self.title_bar, text='title text', fg="white", bg="#010881",
+                                    font=('Modern DOS 9x16', 16))
+        self.close_btn = tk.Frame(self.title_bar, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2,
+                                  highlightbackground='black')
         self.close_label = tk.Label(self.close_btn, fg='black', bg='#C0C0C0', font=('Modern DOS 9x16', 15), text='X')
         self.title_bar.pack(fill="x")
         self.title_label.pack(side="left", padx=5)
@@ -324,7 +335,7 @@ class Fake_Window(tk.Frame):
         # endregion
         # self.window.place(x=450, y=220, width=250, height=250)
 
-    #region Class Methods
+    # region Class Methods
     # Window Base [Error Pop-Up]
     @classmethod
     def create_error(cls, parent):
@@ -345,7 +356,8 @@ class Fake_Window(tk.Frame):
             win.error_canvas.create_line(i, -5, i - 100, 230, fill='#b8272c', width=6)
 
         # Error message area
-        win.error_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', bd=2, highlightbackground='black', highlightthickness=2)
+        win.error_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', bd=2, highlightbackground='black',
+                                   highlightthickness=2)
         win.error_canvas.create_window(13, 10, window=win.error_frame, anchor='nw', width=220, height=75)
 
         win.error_label = tk.Label(
@@ -359,14 +371,16 @@ class Fake_Window(tk.Frame):
         win.error_label.pack(padx=5, pady=5)
 
         # "Yes" button
-        yes_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
+        yes_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2,
+                             highlightbackground='black')
         win.error_canvas.create_window(35, 100, window=yes_frame, anchor='nw', width=70, height=30)
 
         win.yes_btn_label = tk.Label(yes_frame, text='Yes', font=('Modern DOS 9x16', 13), bg='#C0C0C0', fg='black')
         win.yes_btn_label.pack()
 
         # "No" button
-        no_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
+        no_frame = tk.Frame(win.error_canvas, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2,
+                            highlightbackground='black')
         win.error_canvas.create_window(165, 100, window=no_frame, anchor='nw', width=60, height=30)
 
         win.no_btn_label = tk.Label(no_frame, text='No', font=('Modern DOS 9x16', 13), bg='#C0C0C0', fg='black')
@@ -393,84 +407,83 @@ class Fake_Window(tk.Frame):
                                      wraplength=200)
         win.warning_label.pack(pady=5)
 
-        btn_frame = tk.Frame(win.window, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
+        btn_frame = tk.Frame(win.window, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2,
+                             highlightbackground='black')
         btn_frame.place(x=85, y=93)
         win.btn_label = tk.Label(btn_frame, text='OK', font=('Modern DOS 9x16', 17), bg='#C0C0C0')
         win.btn_label.pack()
         win.btn_label.bind("<Button-1>", lambda e: win.close_window())
 
         return win
-    #endregion
+
+    # endregion
 
     # region Custom Windows
     def create_game_window(self):
         self.window.place(x=200, y=100, width=900, height=520)
         self.title_label.configure(text="The_Village")
 
-        #region Inventory Section
+        # region Inventory Section
         inventory_label_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         inventory_label_frame.place(x=0, y=33, width=300, height=40)
 
-        inventory_label = tk.Label(inventory_label_frame, text='Inventory:', font=('Modern DOS 9x16', 17), bg='black', fg='white')
+        inventory_label = tk.Label(inventory_label_frame, text='Inventory:', font=('Modern DOS 9x16', 17), bg='black',
+                                   fg='white')
         inventory_label.pack(pady=5)
 
         inventory_item_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         inventory_item_frame.place(x=0, y=73, width=300, height=200)
 
-        inventory_tools_label = tk.Label(inventory_item_frame,
-                                   text='Tools:',
-                                   font=('Modern DOS 9x16', 20, 'underline'),
-                                   bg='black',
-                                   fg='Red',
-                                   justify='left')
-        inventory_tools_label.place(x=0, y=0)
-        #TODO Tool inventory items in list here, add as they collect
-        inventory_tools = tk.Label(inventory_item_frame, text='Key\nScrewdriver\nHammer\nKnife', font=('Modern DOS 9x16', 17), bg='black', fg='white', justify='left')
-        inventory_tools.place(x=0, y=22)
+        self.inventory_tools_label = tk.Label(inventory_item_frame,
+                                              text='Tools:',
+                                              font=('Modern DOS 9x16', 20, 'underline'),
+                                              bg='black',
+                                              fg='Red',
+                                              justify='left')
+        self.inventory_tools = tk.Label(inventory_item_frame, text='', font=('Modern DOS 9x16', 17), bg='black',
+                                        fg='white', justify='left')
 
-        inventory_docs_label = tk.Label(inventory_item_frame, text='Documents:', font=('Modern DOS 9x16', 20, 'underline'), bg='black', fg='red'
-                                  , justify='left')
-        inventory_docs_label.place(x=0, y=100)
-        #TODO Documents inventory items in list here, add as they collect
-        inventory_docs = tk.Label(inventory_item_frame, text='Decoder\nBible\nLetter', font=('Modern DOS 9x16', 17), bg='black', fg='white'
-                                  , justify='left')
-        inventory_docs.place(x=0, y=123)
+        self.inventory_docs_label = tk.Label(inventory_item_frame, text='Documents:',
+                                             font=('Modern DOS 9x16', 20, 'underline'), bg='black', fg='red'
+                                             , justify='left')
+        self.inventory_docs = tk.Label(inventory_item_frame, text='Decoder\nBible\nLetter',
+                                       font=('Modern DOS 9x16', 17), bg='black', fg='white'
+                                       , justify='left')
 
-        inventory_other_label = tk.Label(inventory_item_frame, text='Other:', font=('Modern DOS 9x16', 20, 'underline'), bg='black', fg='red', justify='left')
-        inventory_other_label.place(x=180, y=0)
-        #TODO Other inventory items in list here, add as they collect
-        inventory_other = tk.Label(inventory_item_frame, text='Mask', font=('Modern DOS 9x16', 17), bg='black', fg='white', justify='left')
-        inventory_other.place(x=180, y=23)
+        self.inventory_other_label = tk.Label(inventory_item_frame, text='Other:',
+                                              font=('Modern DOS 9x16', 20, 'underline'), bg='black', fg='red',
+                                              justify='left')
+        self.inventory_other = tk.Label(inventory_item_frame, text='Mask', font=('Modern DOS 9x16', 17), bg='black',
+                                        fg='white', justify='left')
+        self.inventory_vials_label = tk.Label(inventory_item_frame, text='Vials:',
+                                              font=('Modern DOS 9x16', 20, 'underline'), bg='black', fg='red'
+                                              , justify='left')
+        self.inventory_vials = tk.Label(inventory_item_frame, text='Red\nBlue\nGreen', font=('Modern DOS 9x16', 17),
+                                        bg='black', fg='white'
+                                        , justify='left')
+        # endregion
 
-        inventory_vials_label = tk.Label(inventory_item_frame, text='Vials:', font=('Modern DOS 9x16', 20, 'underline'), bg='black', fg='red'
-                                   , justify='left')
-        inventory_vials_label.place(x=180, y=100)
-        #TODO vials inventory items in list here, add as they collect
-        inventory_vials = tk.Label(inventory_item_frame, text='Red\nBlue\nGreen', font=('Modern DOS 9x16', 17), bg='black', fg='white'
-                                  , justify='left')
-        inventory_vials.place(x=180, y=123)
-        #endregion
-
-        #region Choices Section
+        # region Choices Section
         choice_label_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         choice_label_frame.place(x=0, y=273, width=300, height=40)
 
-        choice_label = tk.Label(choice_label_frame, text='What are you going to do?:', font=('Modern DOS 9x16', 17), bg='black', fg='white')
+        choice_label = tk.Label(choice_label_frame, text='What are you going to do?:', font=('Modern DOS 9x16', 17),
+                                bg='black', fg='white')
         choice_label.pack(pady=5)
 
         choices_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         choices_frame.place(x=0, y=313, width=300, height=200)
 
         self.choice_listbox = tk.Listbox(choices_frame,
-                                    activestyle='none',
-                                    height=6,
-                                    width=30,
-                                    font=('Modern DOS 9x16', 19),
-                                    justify='center',
-                                    bg='black',
-                                    fg='white',
-                                    selectbackground='red',
-                                    selectforeground='black')
+                                         activestyle='none',
+                                         height=6,
+                                         width=30,
+                                         font=('Modern DOS 9x16', 19),
+                                         justify='center',
+                                         bg='black',
+                                         fg='white',
+                                         selectbackground='red',
+                                         selectforeground='black')
 
         def select_choice():
             cs = self.choice_listbox.curselection()
@@ -481,7 +494,7 @@ class Fake_Window(tk.Frame):
         self.choice_listbox.pack(pady=10)
         self.choice_listbox.bind("<<ListboxSelect>>", lambda e: select_choice())
 
-        #region Funcs
+        # region Funcs
         def on_enter(event):
             event.widget.configure(bg='red')
             event.widget.configure(fg='black')
@@ -496,19 +509,21 @@ class Fake_Window(tk.Frame):
             event.widget.configure(fg='green')
             user_choice = select_choice()
             self.update_game_window(user_choice)
-        #endregion
+
+        # endregion
 
         confirm_choice_frame = tk.Frame(choices_frame, bg='black')
         confirm_choice_frame.place(x=100, y=170, width=100, height=24)
 
-        confirm_choice = tk.Label(confirm_choice_frame, text="Continue?", font=('Modern DOS 9x16', 15), bg='black', fg='white', width=20, height=10)
+        confirm_choice = tk.Label(confirm_choice_frame, text="Continue?", font=('Modern DOS 9x16', 15), bg='black',
+                                  fg='white', width=20, height=10)
         confirm_choice.pack()
         confirm_choice.bind("<Enter>", on_enter)
         confirm_choice.bind("<Leave>", on_leave)
         confirm_choice.bind("<Button-1>", clicked_choice)
-        #endregion
+        # endregion
 
-        #region Dialogue Section
+        # region Dialogue Section
         ascii_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         ascii_frame.place(x=300, y=33, width=593, height=327)
         # TODO Will need to configure Ascii in separate .py file to assure 'game scenes' look right
@@ -555,13 +570,13 @@ class Fake_Window(tk.Frame):
         dialogue_frame.place(x=300, y=360, width=593, height=153)
         # TODO plugin dialogue/follow_up/locked_text as text here
         self.dialogue_box = tk.Label(dialogue_frame,
-                            text='dialogue goes here',
-                            bg="black", fg="white",
-                            font=('Modern DOS 9x16', 17),
-                            wraplength=550,
-                            justify="left")
+                                     text='dialogue goes here',
+                                     bg="black", fg="white",
+                                     font=('Modern DOS 9x16', 17),
+                                     wraplength=550,
+                                     justify="left")
         self.dialogue_box.pack()
-        #endregion
+        # endregion
         self.update_game_window()
 
     def create_archive_window(self):
@@ -570,22 +585,24 @@ class Fake_Window(tk.Frame):
         self.content_area.configure(bg='black')
 
         title_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
-        title_frame.place(x=3, y=35, width=517,)
-        title_label = tk.Label(title_frame, text='What truth do you wish to seek?', font=('Modern DOS 9x16', 26), bg='black', fg='white', height=2)
+        title_frame.place(x=3, y=35, width=517, )
+        title_label = tk.Label(title_frame, text='What truth do you wish to seek?', font=('Modern DOS 9x16', 26),
+                               bg='black', fg='white', height=2)
         title_label.pack()
         # TODO Lead to endings Section (ending catalogue)
         endings_frame = tk.Frame(self.window, bg='red')
         endings_frame.place(x=30, y=150, width=120, height=185)
-        endings_frame_label = tk.Label(self.window, text='Endings', font=('Modern DOS 9x16', 20), bg='black', fg='white')
+        endings_frame_label = tk.Label(self.window, text='Endings', font=('Modern DOS 9x16', 20), bg='black',
+                                       fg='white')
         endings_frame_label.place(x=45, y=350)
         endings_art = tk.Text(endings_frame,
-                            bg="darkred",
-                            fg="black",
-                            font=('Modern DOS 9x16', 6, 'bold'),
-                            wrap="none",
-                            highlightthickness=0,
-                            height=30,  # Enough to fit the full image
-                            width=80)  # Adjust for art's max width
+                              bg="darkred",
+                              fg="black",
+                              font=('Modern DOS 9x16', 6, 'bold'),
+                              wrap="none",
+                              highlightthickness=0,
+                              height=30,  # Enough to fit the full image
+                              width=80)  # Adjust for art's max width
 
         endings_art.insert("1.0", r'''
         
@@ -627,13 +644,13 @@ class Fake_Window(tk.Frame):
         items_frame_label = tk.Label(self.window, text='Items', font=('Modern DOS 9x16', 20), bg='black', fg='white')
         items_frame_label.place(x=225, y=350)
         items_art = tk.Text(items_frame,
-                              bg="#6aa84e",
-                              fg="black",
-                              font=('Modern DOS 9x16', 8, 'bold'),
-                              wrap="none",
-                              highlightthickness=0,
-                              height=30,  # Enough to fit the full image
-                              width=30)  # Adjust for art's max width
+                            bg="#6aa84e",
+                            fg="black",
+                            font=('Modern DOS 9x16', 8, 'bold'),
+                            wrap="none",
+                            highlightthickness=0,
+                            height=30,  # Enough to fit the full image
+                            width=30)  # Adjust for art's max width
         items_art.insert("1.0", r'''
         
         
@@ -662,13 +679,13 @@ class Fake_Window(tk.Frame):
         lore_frame_label = tk.Label(self.window, text='Verses', font=('Modern DOS 9x16', 20), bg='black', fg='white')
         lore_frame_label.place(x=390, y=350)
         lore_art = tk.Text(lore_frame,
-                            bg="#3b78d8",
-                            fg="black",
-                            font=('Modern DOS 9x16', 6, 'bold'),
-                            wrap="none",
-                            highlightthickness=0,
-                            height=30,  # Enough to fit the full image
-                            width=50)  # Adjust for art's max width
+                           bg="#3b78d8",
+                           fg="black",
+                           font=('Modern DOS 9x16', 6, 'bold'),
+                           wrap="none",
+                           highlightthickness=0,
+                           height=30,  # Enough to fit the full image
+                           width=50)  # Adjust for art's max width
         lore_art.insert("1.0", r'''
   __________________________
   /\                         \
@@ -703,25 +720,27 @@ class Fake_Window(tk.Frame):
 
         title_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         title_frame.place(x=2, y=35, width=587)
-        title_label = tk.Label(title_frame, text='Review past transgressions:', font=('Modern DOS 9x16', 26), bg='black', fg='white', height=2)
+        title_label = tk.Label(title_frame, text='Review past transgressions:', font=('Modern DOS 9x16', 26),
+                               bg='black', fg='white', height=2)
         title_label.pack()
 
         runs_frame = tk.Frame(self.window, bg='black', highlightthickness=2, highlightbackground='white')
         runs_frame.place(x=2, y=98, width=587, height=193)
 
         runs_listbox = tk.Listbox(runs_frame,
-                                    activestyle='none',
-                                    height=8,
-                                    width=50,
-                                    font=('Modern DOS 9x16', 20),
-                                    justify='center',
-                                    bg='black',
-                                    fg='white',
-                                    selectbackground='red',
-                                    selectforeground='black')
+                                  activestyle='none',
+                                  height=8,
+                                  width=50,
+                                  font=('Modern DOS 9x16', 20),
+                                  justify='center',
+                                  bg='black',
+                                  fg='white',
+                                  selectbackground='red',
+                                  selectforeground='black')
 
         # TODO: Where you plugin options, from main.py
-        runs = ['9/12/2025 - Stupid Archetype', '10/28/2025 - Timid Archetype', '11/2/2025 - Observant Archetype']  # For testing purposes
+        runs = ['9/12/2025 - Stupid Archetype', '10/28/2025 - Timid Archetype',
+                '11/2/2025 - Observant Archetype']  # For testing purposes
 
         for item in runs:
             runs_listbox.insert(runs.index(item), item)
@@ -731,20 +750,25 @@ class Fake_Window(tk.Frame):
     def create_login_window(self):
         # login window for game
         self.title_label.configure(text='Welcome to BLiSS95', font=('Modern DOS 9x16', 16))
-        instruct_label = tk.Label(self.content_area, fg='black', bg="#C0C0C0", text='Type a user name and password to log on to BLiSS95.',
+        instruct_label = tk.Label(self.content_area, fg='black', bg="#C0C0C0",
+                                  text='Type a user name and password to log on to BLiSS95.',
                                   font=('Modern DOS 9x16', 13))
         instruct_label.pack()
 
-        user_label = tk.Label(self.content_area, fg='black', bg="#C0C0C0", text='User name:', font=('Modern DOS 9x16', 13))
+        user_label = tk.Label(self.content_area, fg='black', bg="#C0C0C0", text='User name:',
+                              font=('Modern DOS 9x16', 13))
         user_label.place(x=40, y=45)
 
-        password_label = tk.Label(self.content_area, fg='black', bg="#C0C0C0", text='Password:', font=('Modern DOS 9x16', 13))
+        password_label = tk.Label(self.content_area, fg='black', bg="#C0C0C0", text='Password:',
+                                  font=('Modern DOS 9x16', 13))
         password_label.place(x=40, y=80)
 
-        self.user_entry = tk.Entry(self.content_area, bd=1, relief='sunken', highlightthickness=.5, font=('Modern DOS 9x16', 15))
+        self.user_entry = tk.Entry(self.content_area, bd=1, relief='sunken', highlightthickness=.5,
+                                   font=('Modern DOS 9x16', 15))
         self.user_entry.place(x=130, y=45)
 
-        password_entry = tk.Entry(self.content_area, bd=1, relief='sunken', highlightthickness=.5, font=('Modern DOS 9x16', 15), show="*")
+        password_entry = tk.Entry(self.content_area, bd=1, relief='sunken', highlightthickness=.5,
+                                  font=('Modern DOS 9x16', 15), show="*")
         password_entry.place(x=130, y=80)
 
         def user_check(event=None):
@@ -767,14 +791,17 @@ class Fake_Window(tk.Frame):
             else:
                 Fake_Window.create_error(root).user_error(user_name)
 
-        login_btn = tk.Frame(self.content_area, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
+        login_btn = tk.Frame(self.content_area, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2,
+                             highlightbackground='black')
         login_btn_label = tk.Label(login_btn, fg='black', bg='#C0C0C0', font=('Modern DOS 9x16', 13), text='Login')
         login_btn.place(x=385, y=75, width=65)
         login_btn_label.pack()
         login_btn_label.bind("<Button-1>", user_check)
 
-        user_list_btn = tk.Frame(self.content_area, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2, highlightbackground='black')
-        user_list_label = tk.Label(user_list_btn, fg='black', bg='#C0C0C0', font=('Modern DOS 9x16', 13), text='Possible Users')
+        user_list_btn = tk.Frame(self.content_area, bg='#C0C0C0', relief='raised', bd=2, highlightthickness=2,
+                                 highlightbackground='black')
+        user_list_label = tk.Label(user_list_btn, fg='black', bg='#C0C0C0', font=('Modern DOS 9x16', 13),
+                                   text='Possible Users')
         user_list_btn.place(x=360, y=40)
         user_list_label.pack()
         user_list_label.bind("<Button-1>", show_all_users)
@@ -799,7 +826,8 @@ class Fake_Window(tk.Frame):
 
         def no_again(event=None):
             self.title_label.configure(text="ӺɆȺⱤ ⱲłⱠⱠ ɃɆ ȾⱧł₦Ɇ Ɇ₦ɆᛗɎ", font=('Modern DOS 9x16', 13))
-            self.error_label.configure(text="₳rE̴̛̻͓̘̹͖̯̫̊̓̋ͫͭ̑ͭ͠  yO͎Ʉ sɄR̷̨̟͎͓̥̳͇̯̼͋̂̐͂̊͟e", font=('Modern DOS 9x16', 16))
+            self.error_label.configure(text="₳rE̴̛̻͓̘̹͖̯̫̊̓̋ͫͭ̑ͭ͠  yO͎Ʉ sɄR̷̨̟͎͓̥̳͇̯̼͋̂̐͂̊͟e",
+                                       font=('Modern DOS 9x16', 16))
             root.configure(bg='black')
             self.yes_btn_label.configure(text="aǤȺł₦")
             self.no_btn_label.configure(text="ⱤɄ₦")
@@ -818,7 +846,8 @@ class Fake_Window(tk.Frame):
 
         scrollbar = tk.Scrollbar(self.content_area, orient="vertical")
 
-        list_label = tk.Label(self.content_area, text='The list of users currently present.\nAre you?', font=('Modern DOS 9x16', 17), bg='#C0C0C0')
+        list_label = tk.Label(self.content_area, text='The list of users currently present.\nAre you?',
+                              font=('Modern DOS 9x16', 17), bg='#C0C0C0')
         list_label.pack(pady=15, padx=2)
         listbox = tk.Listbox(self.content_area,
                              activestyle='none',
@@ -861,7 +890,7 @@ class Fake_Window(tk.Frame):
 
     def start_creepy_popup_sequence(self):
 
-        #region Pop-ups
+        # region Pop-ups
         def popup_one():
             pop_one = Fake_Window.create_pop_up(root)
             pop_one.title_label.configure(text="Remain in Session")
@@ -879,7 +908,8 @@ class Fake_Window(tk.Frame):
         def popup_three():
             pop_three = Fake_Window.create_pop_up(root)
             pop_three.title_label.configure(text="The Study Continues")
-            pop_three.warning_label.configure(text="We're still watching. Logging your reactions. Please don't interfere.")
+            pop_three.warning_label.configure(
+                text="We're still watching. Logging your reactions. Please don't interfere.")
             x, y = self.random_x_y()
             pop_three.window.place(x=x, y=y)
 
@@ -897,7 +927,7 @@ class Fake_Window(tk.Frame):
             x, y = self.random_x_y()
             pop_five.window.place(x=x, y=y)
 
-        #endregion
+        # endregion
 
         # Sequence with delays
         root.after(0, popup_one)
@@ -916,10 +946,12 @@ class Fake_Window(tk.Frame):
 
     def exit_game(self):
         self.start_creepy_popup_sequence()
+
         def create_exit_win():
             exit_win = Fake_Window.create_error(root)
             exit_win.title_label.configure(text="Closure Attempt Detected")
-            exit_win.error_label.configure(text="Observation will end. But we won’t forget. Are you absolutely certain you're ready?")
+            exit_win.error_label.configure(
+                text="Observation will end. But we won’t forget. Are you absolutely certain you're ready?")
 
             def pressed_yes(event=None):
                 root.destroy()
@@ -937,15 +969,47 @@ class Fake_Window(tk.Frame):
         y = random.randint(200, 400)  # Vertical range
         return x, y
 
+    def update_inventory_gui(self):
+        player_tools, player_docs, player_other, player_vials = update_inventory()
+
+        # convert list to text with line breaks
+        tools_text = "\n".join(player_tools)
+        docs_text = "\n".join(player_docs)
+        other_text = "\n".join(player_other)
+
+        # only get the color of the vials
+        vial_colors = [item.split("_")[0] for item in player_vials]
+        vials_text = "\n".join(vial_colors)
+
+        if len(player_tools) > 0:
+            self.inventory_tools.configure(text=tools_text)
+            self.inventory_tools.place(x=0, y=22)
+            self.inventory_tools_label.place(x=0, y=0)
+
+        if len(player_docs) > 0:
+            self.inventory_docs.configure(text=docs_text)
+            self.inventory_docs.place(x=0, y=123)
+            self.inventory_docs_label.place(x=0, y=100)
+
+        if len(player_other) > 0:
+            self.inventory_other.configure(text=other_text)
+            self.inventory_other.place(x=180, y=23)
+            self.inventory_other_label.place(x=180, y=0)
+
+        if len(player_vials) > 0:
+            self.inventory_vials.configure(text=vials_text)
+            self.inventory_vials.place(x=180, y=123)
+            self.inventory_vials_label.place(x=180, y=100)
+
     def update_game_window(self, choice_id=None):
         result = load_game_info_gui(
             self.scene_data,
             self.current_scene_name,
             self.current_checkpoint,
             choice_id=choice_id
-        )
 
-        #TODO: Need check for tests
+        )
+        self.update_inventory_gui()
 
         # Update choices listbox
         self.choice_listbox.delete(0, tk.END)
@@ -956,26 +1020,25 @@ class Fake_Window(tk.Frame):
             self.scene_data = scene_dict[self.current_scene_name]
             self.update_game_window()
 
-        if result['choices']:
-            for choice in result['choices']:
-                self.choice_listbox.insert(tk.END, choice)
-
-
-        if result.get('ending'):
-            self.dialogue_box.config(text=f'Ending Achieved:\n{result['dialogue']}')
-            return
-        # Update dialogue box
-        if result['dialogue']:
-            self.dialogue_box.config(text=result['dialogue'])
-            return
-        #TODO: Update after() time to accommodate for follow_up/locked text
-        if result['follow_text']:
-            self.dialogue_box.config(text=result['follow_text'])
-            self.after(100, delayed_update)
-            return
-        if result['locked_text']:
-            self.dialogue_box.config(text=result['locked_text'])
-            self.after(200, delayed_update)
+            # TODO: Need check for tests
+            if result['choices']:
+                for choice in result['choices']:
+                    self.choice_listbox.insert(tk.END, choice)
+            if result.get('ending'):
+                self.dialogue_box.config(text=f'Ending Achieved:\n{result['dialogue']}')
+                return
+            # Update dialogue box
+            if result['dialogue']:
+                self.dialogue_box.config(text=result['dialogue'])
+                return
+            # TODO: Update after() time to accommodate for follow_up/locked text
+            if result['follow_text']:
+                self.dialogue_box.config(text=result['follow_text'])
+                self.after(100, delayed_update)
+                return
+            if result['locked_text']:
+                self.dialogue_box.config(text=result['locked_text'])
+                self.after(200, delayed_update)
 
 
 root = tk.Tk()
@@ -986,8 +1049,8 @@ HEIGHT = 720
 root.geometry(f"{WIDTH}x{HEIGHT}")
 root.resizable(False, False)
 
-#login_window = Fake_Window(root, display_content=True).create_login_window()
+# login_window = Fake_Window(root, display_content=True).create_login_window()
 
 display_home_screen('Asa')
-#test_win = Fake_Window(root, display_content=True, display_close=True).create_log_window()
+# test_win = Fake_Window(root, display_content=True, display_close=True).create_log_window()
 root.mainloop()
