@@ -14,9 +14,24 @@ import game_db as db
 
 
 # TODO: Menu should let you read what full desc in final version [endings]
-test_index = None
+
+
 # region Variables
 db_instance = db.MockDatabase()
+#Track what tests are done
+after_swamp = False
+after_farm = False
+after_church = False
+
+test_mode_state = {
+    "active": False,
+    "scene_name": None,
+    "checkpoint_key": None,
+    "questions_list": [],
+    "current_index": 0,
+    "test_choices": {},
+    "test_answers": {},
+}
 # region Scene Dictionaries
 
 # Each of these holds all checkpoint data for their respective areas
@@ -45,29 +60,6 @@ scene_dict = {
 }
 
 # Correct answers for the Trust test and score thresholds for Faith and Intuition tests
-test_answers_dict = {
-    "trust": {
-        "trust_1": 2,
-        "trust_2": 1,
-        "trust_3": 2,
-        "trust_4": 1,
-        "trust_5": 2,
-        "trust_6": 1,
-        "trust_7": 1,
-        "trust_8": 2,
-        "trust_9": 1
-    },
-    'faith': {
-        15: "believer",  # 15 to 18 → believer ending
-        10: "pass",  # 10 to 14 → pass ending
-        0: "death"  # 0 to 9 → failed/doom ending
-    },
-    'intuition': {
-        8: "curious",  # 8 to 9 → passed/insightful ending
-        5: "pass",  # 5 to 7 → survived
-        0: "boring"  # 0 to 4 → failed/boring ending
-    },
-}
 # TODO: When tkinter in use, polish up the values of this dict
 # Key items that are added to the player's inventory during the story, for db
 key_items = {
@@ -127,8 +119,6 @@ key_items = {
         "effect": "Why would the priest give you this?"
     }
 }
-
-test_session = {}
 
 # Dictionary that holds all stats and game state for the player
 player_data = {
@@ -244,229 +234,168 @@ def reset_game_data():
             "intuition_answers": {}
         },
         "archetype_data": {},
-        "cond_data": {}
+        "cond_data": {},
+        'test_mode_state' : {
+            "active": False,
+            "scene_name": None,
+            "checkpoint_key": None,
+            "questions_list": [],
+            "current_index": 0,
+            "test_choices": {},
+            "test_answers": {},
+    }
     }
 
-#TODO: LEGACY TEST FUNCTIONS
-# Need to update for gui
-# region Test Functions
 
-# region Load Test
+def load_test_gui(scene_name, scene, checkpoint_key, choice_id=None):
+    global test_mode_state
+    print(f"load_test choice: {choice_id}")
+    print(f"current test mode status: {test_mode_state}")
 
-def load_test(scene, checkpoint_key):
-    """
-    In charge of loading the correct dialogue and options from a test scene.
-    :param scene: Dictionary to search within.
-    :param checkpoint_key: Name of the key in scene dictionary.
-    """
-    # region Vars
+    # Initialize test state
+    if not test_mode_state["active"]:
+        print("initializing test state")
+        test_name = checkpoint_key.split('_')[0]
+        test_block = scene[checkpoint_key]
 
-    index = 0  # Tracks which question we’re currently on
-    test_choices = {}  # Stores the player's answers by tag
-    test_name = checkpoint_key.split('_')[0]  # Derives the test type (e.g., 'faith') from key like 'faith_test'
-    test_answers = test_answers_dict[test_name]  # Gets the correct answers for this test
-    key_amount = list(scene.get(checkpoint_key, {}))  # Gets all the keys in the test section (question_1...n)
+        test_mode_state.update({
+            "active": True,
+            "scene_name": scene_name,
+            "checkpoint_key": checkpoint_key,
+            "questions_list": list(test_block.keys()),
+            "current_index": 0,
+            "test_choices": {}
+        })
+        print(f"finished initializing test state: {test_mode_state}")
 
-    # Ordered list of question keys expected in the test
-    questions_str = [
-        "question_1",
-        "question_2",
-        "question_3",
-        "question_4",
-        "question_5",
-        "question_6",
-        "question_7",
-        "question_8",
-        "question_9"
-    ]
-    # endregion
+    test_name = checkpoint_key.split('_')[0]
+    print(f"checkpoint key in load test: {checkpoint_key}")
+    print("")
+    current_q = test_mode_state["questions_list"][test_mode_state["current_index"]]
+    question_data = scene[checkpoint_key][current_q]
+    tag = question_data["tag"]
+    choices = [question_data['choices'][key]['Text'] for key in question_data['choices']]
+    dialogue = question_data["dialogue"]
 
-    # Load and process the test questions, returning the player's answers
-    test_choices = load_test_info(index, key_amount, scene, checkpoint_key, questions_str, test_choices)
+    print(f"Dia: {dialogue}")
+    print(f"Choi: {choices}")
 
-    # Evaluate results based on the test type
+
+    # If a choice was made, save it
+    if choice_id is not None:
+        print("made a choice in load_test")
+        test_mode_state["test_choices"][tag] = choice_id
+        test_mode_state["current_index"] += 1
+
+        # If test is finished
+        if test_mode_state["current_index"] >= len(test_mode_state["questions_list"]):
+            print('finished test')
+            print(f"Test state before test eval: {test_mode_state}")
+            result = evaluate_test_result(test_name, test_mode_state["test_choices"])
+            print(f"returning result from test eval: {result}")
+            test_mode_state["active"] = False
+            test_mode_state['checkpoint_key'] = result['next_cp']
+            print(f"Test state after test finish: {test_mode_state}")
+            return result
+
+        next_q = test_mode_state["questions_list"][test_mode_state["current_index"]]
+        next_data = scene[checkpoint_key][next_q]
+        choices = [next_data['choices'][key]['Text'] for key in next_data['choices']]
+        dialogue = next_data["dialogue"]
+        print(f'test after making a choice: {test_mode_state}')
+        return {
+            "dialogue": dialogue,
+            "choices": choices,
+            "follow_text": None,
+            "next_cp": checkpoint_key,
+            "next_scene": scene_name,
+            "tag": next_data["tag"]
+        }
+
+    # Otherwise, return same question
+    return {
+        "dialogue": dialogue,
+        "choices": choices,
+        "tag": question_data["tag"]
+    }
+
+
+def evaluate_test_result(test_name, test_choices):
     if test_name == 'trust':
-        calculate_trust_result(test_answers, test_choices)
+        print('evaluating trust test')
+        return calculate_trust_result(test_choices)
     elif test_name == 'faith':
-        calculate_faith_result(test_answers, test_choices)
+        print('evaluating faith test')
+        return calculate_faith_result(test_choices)
     elif test_name == 'intuition':
-        calculate_intuition_result(test_answers, test_choices)
+        print('evaluating intuition test')
+        return calculate_intuition_result(test_choices)
 
 
-def load_test_info(index, key_amount, scene, checkpoint_key, questions_str, test_choices):
-    """
-    In charge of loading the dialogue and choices for the test scene.
-    :param index: Index of question we're on.
-    :param key_amount: Number of keys inside the test scene dictionary.
-    :param scene: What scene this test belongs to.
-    :param checkpoint_key: Name of checkpoint.
-    :param questions_str: List of strings: question_1-9.
-    :param test_choices: Dictionary of players' choices.
-    :return: Returns final test_choices dictionary
-    """
-    # Loop through the questions in the test
-    while index < len(key_amount):
-        test_data = scene.get(checkpoint_key, {})  # Pulls the full test data block
-        question_data = test_data.get(questions_str[index], {})  # Get the current question
-
-        tag = question_data.get('tag', '')  # Used to record the answer by this identifier
-
-        dialogue = question_data.get('dialogue', '')  # Main question text
-        print(f"\n{dialogue}\n")
-
-        choices = question_data.get('choices', {})  # All available answer options
-
-        # Print out each choice line with its ID
-        for choice_key, choice_data in choices.items():
-            print(f"{choice_data['id']}: {choice_data['Text']}")
-
-        # Delegate input/recording to assign_test_tags
-        return_dict = assign_test_tags(tag, test_choices, choices, index)
-        index = return_dict['index']
-        test_choices = return_dict['test_choices']
-    return test_choices
+def calculate_trust_result(test_choices):
+    test_answers = {
+        "trust_1": 2,
+        "trust_2": 1,
+        "trust_3": 2,
+        "trust_4": 1,
+        "trust_5": 2,
+        "trust_6": 1,
+        "trust_7": 1,
+        "trust_8": 2,
+        "trust_9": 1
+    }
+    correct = sum(1 for k, v in test_answers.items() if test_choices.get(k) == v)
+    if correct == 9:
+        return {"next_cp": "trust_ending", "next_scene": "farm"}
+    elif correct >= 7:
+        return {"next_cp": "kindness_ending", "next_scene": "farm"}
+    else:
+        return {"next_cp": "fail_choice", "next_scene": "farm"}
 
 
-def assign_test_tags(tag, test_choices, choices, index):
-    """
-    Assigns the tag of each question into the test_choices dictionary, assuring the input is saved properly.
-    :param tag: Tag of the question.
-    :param test_choices: Dictionary of players' choices.
-    :param choices: Options within the test, they can choose.
-    :param index: Index of question we're on.
-    :return: Returns a dictionary containing both the updated index and the test_choices.
-    """
-    valid_input = False
-    vars_dict_return = {"index": None, "test_choices": {}}
-
-    # Keep looping until player enters a valid answer
-    while not valid_input:
-        try:
-            x = int(input("Choose an option: "))
-
-            # Store the answer in test_choices using the tag
-            if tag:
-                test_choices[tag] = x
-            else:
-                print("Warning: question missing tag, answer not recorded")
-
-            # Check if input matches a valid choice and print follow-up text
-            for key in choices:
-                if x == choices[key]['id']:
-                    follow_text = choices[key].get('follow_up_text') or ''
-                    print(follow_text)
-                    valid_input = True
-                    break  # Exit loop once valid
-
-            if not valid_input:
-                print("Invalid choice. Try Again.")
-        except ValueError:
-            print("Please enter a number")
-
-    index += 1  # Move to next question
-
-    # Package updated state for return
-    vars_dict_return['index'] = index
-    vars_dict_return['test_choices'] = test_choices
-    return vars_dict_return
-
-
-# endregion
-
-
-# region Calculate Test Results
-
-def calculate_trust_result(test_answers, test_choices):
-    """
-    Calculates the results of the player choices for Trust test, located in the farm scene.
-    :param test_answers: The correct answers to the Trust test.
-    :param test_choices: A dictionary received from load_test, has the player's answers for the test.
-    """
-    # Store the test choices in final stats for later analysis
-    test_data['trust_answers'] = test_choices
-
-    # Count how many answers the player got correct
-    correct = 0
-    for key, answer in test_answers.items():
-        if test_choices.get(key) == answer:
-            correct += 1
-
-    # Run an archetype analysis (external analysis logic), and save to final_data
-    final_data['archetype_data']['trust_archetype'] = a.calc_trust_test_archetype(correct)
-
-    # Determine ending based on the number of correct answers
-    match correct:
-        case 9:
-            load_ending(farm_scene, 'trust_ending')
-        case _ if correct >= 7:
-            load_ending(farm_scene, 'kindness_ending')
-        case _ if correct < 7:
-            load_game_info(farm_scene, 'farm', 'fail_choice')
-
-
-def calculate_faith_result(test_answers, test_choices):
-    """
-    Calculates the results of the player choices for Faith test, located in the church scene.
-    :param test_answers: The score threshold dictionary for the Faith test.
-    :param test_choices: A dictionary received from load_test, has the player's answers for the test.
-    """
-    # Store player answers to final stats for analysis
-    test_data['faith_answers'] = test_choices
-
-    # Run an archetype analysis (external analysis logic), and save to final_data
-    final_data['archetype_data']['faith_archetype'] = a.calc_faith_test_archetype(test_choices)
-
-    # Score is the sum of all choice values
+def calculate_faith_result(test_choices):
     score = sum(test_choices.values())
 
-    # Determine which threshold was passed (this loop is a soft fallback/expansion hook)
-    for threshold in sorted(test_answers.keys(), reverse=True):
-        if score >= threshold:
-            break
-
-    # Assign ending based on score tiers
-    match score:
-        case _ if score >= 15:
-            load_ending(church_scene, 'believer_ending')
-        case _ if score >= 10:
-            load_ending(church_scene, 'faith_ending')
-        case _ if score < 10:
-            load_ending(church_scene, 'heretics_ending')
+    if score >= 15:
+        return {"next_cp": "believer_ending", "next_scene": "church"}
+    elif score >= 10:
+        return {"next_cp": "faith_ending", "next_scene": "church"}
+    else:
+        return {"next_cp": "heretics_ending", "next_scene": "church"}
 
 
-def calculate_intuition_result(test_answers, test_choices):
-    """
-    Calculates the results of the player choices for Intuition test, located in the swamp scene.
-    :param test_answers: The score threshold dictionary for the Intuition test.
-    :param test_choices: A dictionary received from load_test, has the player's answers for the test.
-    """
-    # Store player answers in final stats
-    test_data['intuition_answers'] = test_choices
-
-    # Run an archetype analysis (external analysis logic), and save to final_data
-    final_data['archetype_data']['intuition_archetype'] = a.calc_intuition_test_archetype(test_choices)
-
-    # Score is the sum of the test values
+def calculate_intuition_result(test_choices):
     score = sum(test_choices.values())
+    print(f"player test choices: {test_choices}")
+    #TODO: Include dialogue and choices OR redirect to load with correct info
+    if score >= 8:
+        dialogue = scene_dict['swamp']['make_choice']['dialogue']
+        choices = [scene_dict['swamp']['make_choice']['choices'][key]['Text'] for key in
+                   scene_dict['swamp']['make_choice']['choices']]
+        return {
+                "next_cp": "make_choice",
+                "next_scene": "swamp",
+                "dialogue": dialogue,
+                "choices": choices
+                }
+    elif score >= 5:
+        dialogue = scene_dict['swamp']['probed_ending']['dialogue']
+        return {
+                "next_cp": "probed_ending",
+                "next_scene": "swamp",
+                "ending": True,
+                "dialogue": dialogue,
+                }
+    else:
+        dialogue = scene_dict['swamp']['rejected_ending']['dialogue']
+        return {
+                "next_cp": "rejected_ending",
+                "next_scene": "swamp",
+                "ending": True,
+                "dialogue": dialogue,
+                }
 
-    # Check thresholds for logic hook/flexibility
-    for threshold in sorted(test_answers.keys(), reverse=True):
-        if score >= threshold:
-            break
 
-    # Assign scene or ending based on score range
-    match score:
-        case _ if score >= 8:
-            load_game_info(swamp_scene, 'swamp', 'make_choice')  # Leads to another choice scene
-        case _ if score >= 5:
-            load_ending(swamp_scene, 'probed_ending')
-        case _ if score < 5:
-            load_ending(swamp_scene, 'rejected_ending')
-
-
-# endregion
-
-# endregion
 
 
 # region Main Game Logic
@@ -478,24 +407,37 @@ def load_game_info_gui(scene, scene_name, checkpoint_key, choice_id=None):
     choices = return_dict['choices']
     checkpoint_data = return_dict['checkpoint_data']
 
+    print(f"Recieved: Scene: {scene}\nScene_name: {scene_name}\nCheckpoint_key: {checkpoint_key}\nChoice_id: {choice_id}")
+
+    if after_swamp and scene_name == 'swamp' and checkpoint_key == 'intro' and choice_id == 1:
+        scene = scene_dict['swamp']
+        scene['intro']['choices']['option_one']['next_checkpoint'] = 'after_test_start'
+    if after_farm and scene_name == 'farm' and checkpoint_key == 'intro' and choice_id == 1:
+        scene = scene_dict['farm']
+        scene['intro']['choices']['option_one']['next_checkpoint'] = 'after_test_start'
+    if after_church and scene_name == 'church' and checkpoint_key == 'intro' and choice_id == 1:
+        scene = scene_dict['church']
+        scene['intro']['choices']['option_one']['next_checkpoint'] = 'after_test_start'
+
     # Get the current dialogue and available choices
     dialogue, choices_list = get_dialogue_and_choices(active_block, choices)
     # print(f"main.py has dialogue: {dialogue}")
     # print(f"main.py has choices: {choices_list}")
-    if '_test' in checkpoint_key:
-        print(f"Peekaboo i just put them boogers in my chain")
-        test_loop(checkpoint_data)
+    print(f"current checkpoint key: {checkpoint_key}")
+    if checkpoint_key.endswith('_test') and 'after_test' not in checkpoint_key:
+        print(f"checkpoint contains test keyword")
+        print(f"load_game has choice_id: {choice_id}")
+        load_test_info = load_test_gui(scene_name, scene, checkpoint_key, choice_id)
+        print(f"Returning from test: {load_test_info}")
+        return load_test_info
     if choice_id is None:
+        print("No choice was made")
         return {
             'dialogue': dialogue,
-            'choices': choices_list,
-            'follow_text': None,
-            'next_cp': None,
-            'next_scene': None,
-            'mode': 'game'
-
+            'choices': choices_list
         }
     else:
+        print("processing choice")
         result = process_choice_with_checks(choice_id, choices, checkpoint_data)
         return result
 
@@ -588,16 +530,15 @@ def process_choice_with_checks(choice_id, choices, checkpoint_data):
                 break
             else:
                 # Option is not locked — proceed
+                print("Not locked option")
                 result = not_locked_display_gui(choice, checkpoint_data, choice_id)
                 break
     return result
 
 
 def key_checks_gui(allow_progress, locked_info):
-    print(f'First key check status before: {allow_progress}')
     # Check if there is an explore_flag key, if so, does the player meet the requirements to select?
     if 'explore_flag' in locked_info:
-        print('First key check: choice has a explore_flag')
         flags = locked_info['explore_flag']
         for key in flags:
             if key in player_data['explore_flag']:
@@ -606,13 +547,11 @@ def key_checks_gui(allow_progress, locked_info):
 
     # Check if there is an inventory_need key, and the player has everything required
     if 'inventory_need' in locked_info:
-        print('First key check: choice has a inventory_need')
         flags = locked_info['inventory_need']
         for key in flags:
             if key in player_data['inventory']:
                 if flags[key] == player_data['inventory'][key]:
                     allow_progress = True
-    print(f'First key check status after: {allow_progress}')
     return allow_progress
 
 
@@ -626,19 +565,16 @@ def progress_allowed_gui(choice, locked_info, choice_id, checkpoint_data):
 
     # TODO If its a test or ending, redirect
     if '_test' in next_cp:
-        print(f"Loading test")
+        print(f"test inside load game_info detected in progress allowed")
 
     if '_ending' in next_cp:
         return ending_handler(next_cp, next_scene)
 
     return {
-        'dialogue': None,
         'choices': [],
         'follow_text': follow_text,
         'next_cp': next_cp,
-        'next_scene': next_scene,
-        'ending': False,
-        'mode': 'game'
+        'next_scene': next_scene
     }
 
 
@@ -671,14 +607,10 @@ def progress_locked_gui(locked_info):
     next_scene = locked_info.get('locked_scene')
 
     return {
-        'dialogue': None,
         'choices': [],
-        'follow_text': None,
         'locked_text': locked_dialogue,
         'next_cp': next_cp,
         'next_scene': next_scene,
-        'ending': False,
-        'mode': 'game'
     }
 
 
@@ -697,46 +629,45 @@ def not_locked_display_gui(choice, checkpoint_data, choice_id):
 
     # TODO If its a test or ending, redirect
     if '_test' in next_cp:
-        print(f"Loading test")
+        print(f"test inside load game_info detected in not locked display")
 
     if '_ending' in next_cp:
-        return ending_handler(next_cp, next_scene)
+        return ending_handler(choice)
 
     return {
-        'dialogue': None,
         'choices': [],
         'follow_text': follow_text,
         'next_cp': next_cp,
         'next_scene': next_scene,
-        'ending': False,
-        'mode': 'game'
     }
 
 
 # endregion
 
 
-def ending_handler(next_cp, next_scene):
-
+def ending_handler(choice):
+    global after_swamp
+    global after_farm
+    global after_church
+    print("man handle that ending")
+    next_cp = choice.get('next_checkpoint')
+    next_scene = choice.get('checkpoint_scene')
     # Get the block of data associated with the ending checkpoint
     ending_block = scene_dict[next_scene][next_cp]
     dialogue = ending_block.get('dialogue')
     end_key = ending_block.get('ending_key')
 
-    # TODO: Need to playtest this
     # Not a 'true ending', player can continue game
     if ending_block.get('next_checkpoint'):
+        dialogue = ending_block.get('dialogue')
+        next_cp = ending_block.get('next_checkpoint')
+        next_scene = ending_block.get('checkpoint_scene')
+        print("This game aint done with you yet")
         # Store the player's ending decision into the test condition dict
         cond_data[next_scene] = end_key
 
         # Save the ending result into the player stats
         player_data['ending_key'].append(end_key)
-
-        #Todo: If this doesnt work we could make a bool in the return dict that forces it to change/load any intros to that checkpoint
-        #Load the correct scene dictionary
-        scene = sc.return_scene(next_scene + '_scene_dict')
-        # Modify the intro block to jump to post-test content
-        scene['intro']['choices']['option_one']['next_checkpoint'] = 'after_test_start'
 
         # Check if this ending grants an item and update the inventory
         if ending_block.get('inventory_need'):
@@ -744,24 +675,34 @@ def ending_handler(next_cp, next_scene):
             for key in need:
                 player_data['inventory'][key] = not player_data['inventory'][key]
 
-        return {
-            'dialogue': None,
-            'choices': [],
-            'follow_text': None,
-            'next_cp': next_cp,
-            'next_scene': next_scene,
-            'ending': True,
-            'mode': 'game'
-        }
-    else:  # Is a 'true ending', player cant continue game
+        print(f"ending handler next cp: {next_cp}")
+        print(f"ending handler next scene: {next_scene}")
+        print(f"ending handler dia: {dialogue}")
+
+        if 'after_test_' in next_cp:
+            print("Updating AFTER BOOLS")
+            if next_scene == 'swamp':
+                print("UPDATING SWAMP AFTER")
+                after_swamp = True
+                print(after_swamp)
+            if next_scene == 'farm':
+                after_farm = True
+            if next_scene == 'church':
+                after_church = True
+
         return {
             'dialogue': dialogue,
             'choices': [],
-            'follow_text': None,
-            'next_cp': None,
-            'next_scene': None,
+            'next_cp': next_cp,
+            'next_scene': next_scene,
+            'ending': False,
+
+        }
+    else:
+        print("okay bye bye you dead")# Is a 'true ending', player cant continue game
+        return {
+            'dialogue': dialogue,
             'ending': True,
-            'mode': 'game'
         }
 
 
@@ -878,22 +819,8 @@ player_data = final_data["player_data"]
 test_data = final_data["test_data"]
 cond_data = final_data["cond_data"]
 archetype_data = final_data["archetype_data"]
+test_mode_state = final_data['test_mode_state']
 user_name = final_data['user_name']
 # endregion
 
 cond_data = initialize_game_conditions(condition_dict)
-
-#TODO: TESTING AREA ________________________
-
-def test_loop(checkpoint_data):
-    global test_index
-    current_test_questions = {}
-    player_test_answers = {}
-    print(f'Current test data: {checkpoint_data}')
-    for key in checkpoint_data:
-        tag = checkpoint_data[key]['tag']
-        player_test_answers[tag] = None
-        current_test_questions[key] = False
-
-    print(f"player test: {player_test_answers}")
-    print(f"current test: {current_test_questions}")

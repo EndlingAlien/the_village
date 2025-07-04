@@ -288,8 +288,8 @@ class Fake_Window(tk.Frame):
         self.can_drag = can_drag
 
         # For game window
-        self.current_scene_name = 'swamp'
-        self.current_checkpoint = 'approach_cube'
+        self.current_scene_name = 'start'
+        self.current_checkpoint = 'intro'
         self.scene_data = scene_dict[self.current_scene_name]
 
         # Window Base [Error Pop Up]
@@ -508,6 +508,7 @@ class Fake_Window(tk.Frame):
             event.widget.configure(bg='black')
             event.widget.configure(fg='green')
             user_choice = select_choice()
+            print('made a choice')
             self.update_game_window(user_choice)
 
         # endregion
@@ -1002,17 +1003,25 @@ class Fake_Window(tk.Frame):
             self.inventory_vials_label.place(x=180, y=100)
 
     def update_game_window(self, choice_id=None):
+        print("called update game window")
         result = load_game_info_gui(
             self.scene_data,
             self.current_scene_name,
             self.current_checkpoint,
             choice_id=choice_id
-
         )
+        print("Returned to update game window")
+        print(f"Result info: {result}")
         self.update_inventory_gui()
 
         # Update choices listbox
         self.choice_listbox.delete(0, tk.END)
+
+        # Only update if player just made a choice
+        if choice_id is not None and result.get("next_scene") and result.get("next_cp"):
+            self.current_scene_name = result["next_scene"]
+            self.current_checkpoint = result["next_cp"]
+            self.scene_data = scene_dict[self.current_scene_name]
 
         def delayed_update():
             self.current_scene_name = result['next_scene']
@@ -1020,25 +1029,34 @@ class Fake_Window(tk.Frame):
             self.scene_data = scene_dict[self.current_scene_name]
             self.update_game_window()
 
-            # TODO: Need check for tests
-            if result['choices']:
-                for choice in result['choices']:
-                    self.choice_listbox.insert(tk.END, choice)
-            if result.get('ending'):
-                self.dialogue_box.config(text=f'Ending Achieved:\n{result['dialogue']}')
-                return
-            # Update dialogue box
-            if result['dialogue']:
-                self.dialogue_box.config(text=result['dialogue'])
-                return
-            # TODO: Update after() time to accommodate for follow_up/locked text
-            if result['follow_text']:
-                self.dialogue_box.config(text=result['follow_text'])
-                self.after(100, delayed_update)
-                return
-            if result['locked_text']:
-                self.dialogue_box.config(text=result['locked_text'])
-                self.after(200, delayed_update)
+        if result.get('ending'):
+            print("Is a true ending")
+            self.dialogue_box.config(text=f'Ending Achieved:\n{result['dialogue']}')
+            return
+        if result.get('choices'):
+            print("has choices")
+            for choice in result['choices']:
+                self.choice_listbox.insert(tk.END, choice)
+        if result.get('dialogue') and (result.get("ending") is False):
+            print("this is not a true ending")
+            self.dialogue_box.config(text=result['dialogue'])
+            self.after(1000, delayed_update)
+            return
+        # Update dialogue box
+        if result.get('dialogue') and result.get('ending') is None:
+            print("has dialogue")
+            self.dialogue_box.config(text=result['dialogue'])
+            return
+        # TODO: Update after() time to accommodate for follow_up/locked text
+        if result.get('follow_text'):
+            print("has follow text")
+            self.dialogue_box.config(text=result['follow_text'])
+            self.after(100, delayed_update)
+            return
+        if result.get('locked_text'):
+            print("Has locked text")
+            self.dialogue_box.config(text=result['locked_text'])
+            self.after(200, delayed_update)
 
 
 root = tk.Tk()
