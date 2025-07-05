@@ -2,15 +2,15 @@
 
 **The Village** is a creepy, MS-DOS-inspired text adventure running inside a faux Windows 95 desktop. It’s a Python + Tkinter project where you explore a cursed little operating system... and an even stranger village tucked deep in the Appalachian woods.
 
-Everything here — the concept, code, GUI, even the fake desktop wallpapers — is mine. This is my love letter to weird software, analog horror, and the kind of offbeat storytelling that makes your skin crawl.
+Everything here: the concept, code, GUI, even the fake desktop wallpapers, is mine. This is my love letter to weird software, analog horror, and the kind of offbeat storytelling that makes your skin crawl.
 
 ---
 
 ## Why I Made This
 
-I wanted to build something nostalgic but original, unsettling but playful — something that *feels* like finding a cursed EXE on your uncle’s old computer. I built the GUI from scratch to mimic a 90s OS, then nested a modular text adventure inside it.
+I wanted to build something nostalgic but original, unsettling but playful, something that *feels* like finding a cursed EXE on your uncle’s old computer. I built the GUI from scratch to mimic a 90s OS, then nested a modular text adventure inside it.
 
-It’s my most recent and most ambitious project — and it’s still evolving.
+It’s my most recent and most ambitious project....and it’s still evolving.
 
 ---
 
@@ -29,7 +29,7 @@ It’s my most recent and most ambitious project — and it’s still evolving.
 
 - A terminal-style game that you don’t run from the terminal
 - A horror-flavored storybook in disguise
-- A test of what kind of player you are — polite, curious, reckless, lucky?
+- A test of what kind of player you are: polite, curious, reckless?
 
 ---
 
@@ -42,7 +42,7 @@ It’s my most recent and most ambitious project — and it’s still evolving.
 
 ---
 
-## 🗃Status
+## Status
 
 **In Progress (Near Complete)** — Fully functional, modular, and playable, with save/load, endings, and menus. Currently refining scenes and expanding branching logic. Will be uploaded to Itch.io once polished.
 
@@ -57,7 +57,7 @@ This project combines:
 - Modular, maintainable game structure
 - Visual and narrative creativity
 
-It’s the most complete expression of my current dev skillset — and just the beginning of where I want to take it.
+It’s the most complete expression of my current dev skillset, and just the beginning of where I want to take it.
 
 ---
 
